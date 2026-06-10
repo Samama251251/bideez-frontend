@@ -2,24 +2,118 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User, Building, Loader2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { createClient } from "@/lib/supabase/client"
 
 type Mode = "signin" | "signup"
+type Role = "owner" | "employee"
 
 export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
+  const router = useRouter()
   const [mode, setMode] = React.useState<Mode>(initialMode)
   const [showPassword, setShowPassword] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [success, setSuccess] = React.useState<string | null>(null)
+
+  // Form fields
+  const [name, setName] = React.useState("")
+  const [email, setEmail] = React.useState("")
+  const [password, setPassword] = React.useState("")
+  const [role, setRole] = React.useState<Role>("owner")
+  const [companyName, setCompanyName] = React.useState("")
+
   const isSignup = mode === "signup"
 
-  // UI only — no auth wired up yet.
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setError(null)
+    setSuccess(null)
+    setLoading(true)
+
+    try {
+      const supabase = createClient()
+
+      if (isSignup) {
+        // Pre-flight check: If they are joining as a member, ensure the company exists FIRST
+        // so we don't create an orphaned Supabase auth user.
+        if (role === "employee") {
+          const checkRes = await fetch(
+            `http://localhost:5000/api/auth/check-company?name=${encodeURIComponent(companyName)}`
+          )
+          if (checkRes.status === 404) {
+            throw new Error(
+              `No company named "${companyName}" exists. Please check the name or contact your company's founder.`
+            )
+          }
+          if (!checkRes.ok) {
+            throw new Error("Failed to verify company. Please try again.")
+          }
+        }
+
+        // 1. Sign up with Supabase first to ensure the auth account is created
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name,
+              role,
+              company_name: companyName,
+            },
+          },
+        })
+
+        if (signUpError) throw signUpError
+
+        // 2. Call backend to create user profile & company in our DB
+        const res = await fetch("http://localhost:5000/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            role,
+            companyName,
+          }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.message || data.error || "Profile creation failed. Please contact support.")
+        }
+
+        // 3. Handle Email Confirmation state
+        if (!authData.session) {
+          setSuccess("Account created! Please check your email to confirm your account before signing in.")
+          setMode("signin")
+          return
+        }
+
+        router.push("/dashboard")
+      } else {
+        // Sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (signInError) throw signInError
+
+        router.push("/dashboard")
+      }
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -47,7 +141,10 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
           <button
             key={m}
             type="button"
-            onClick={() => setMode(m)}
+            onClick={() => {
+              setMode(m)
+              setError(null)
+            }}
             className={cn(
               "rounded-full py-1.5 text-sm font-medium transition-colors",
               mode === m
@@ -74,16 +171,72 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
         <Separator className="flex-1" />
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-lg bg-destructive/15 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 rounded-lg bg-primary/15 p-3 text-sm text-primary">
+          {success}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {isSignup && (
-          <Field
-            id="name"
-            label="Full name"
-            icon={<User className="size-4" />}
-            type="text"
-            placeholder="Jane Doe"
-            autoComplete="name"
-          />
+          <>
+            <div className="space-y-2">
+              <Label>I am a...</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRole("owner")}
+                  className={cn(
+                    "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                    role === "owner"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  Founder
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("employee")}
+                  className={cn(
+                    "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                    role === "employee"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  Member
+                </button>
+              </div>
+            </div>
+
+            <Field
+              id="name"
+              label="Full name"
+              icon={<User className="size-4" />}
+              type="text"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+
+            <Field
+              id="companyName"
+              label={role === "owner" ? "Company name" : "Join company"}
+              icon={<Building className="size-4" />}
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              required
+            />
+          </>
         )}
 
         <Field
@@ -91,8 +244,10 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
           label="Work email"
           icon={<Mail className="size-4" />}
           type="email"
-          placeholder="you@company.com"
           autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <div className="space-y-2">
@@ -114,9 +269,11 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder={isSignup ? "Create a password" : "••••••••"}
               autoComplete={isSignup ? "new-password" : "current-password"}
               className="px-9"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
             <button
               type="button"
@@ -133,9 +290,15 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
           </div>
         </div>
 
-        <Button type="submit" className="w-full">
-          {isSignup ? "Create account" : "Sign in"}
-          <ArrowRight className="size-4" />
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : isSignup ? (
+            "Create account"
+          ) : (
+            "Sign in"
+          )}
+          {!loading && <ArrowRight className="size-4 ml-2" />}
         </Button>
       </form>
 
@@ -143,7 +306,10 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
         {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           type="button"
-          onClick={() => setMode(isSignup ? "signin" : "signup")}
+          onClick={() => {
+            setMode(isSignup ? "signin" : "signup")
+            setError(null)
+          }}
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
           {isSignup ? "Sign in" : "Sign up"}
