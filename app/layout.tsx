@@ -1,8 +1,9 @@
-import { Geist, Geist_Mono, Inter } from "next/font/google"
+import type { Metadata } from "next"
+import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'})
 
@@ -10,6 +11,12 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const metadata: Metadata = {
+  title: "bideez — Decide before you draft. Rehearse before you win.",
+  description:
+    "An AI bid-response engine with a decision gate before drafting and a rehearsal stage after. Extract requirements, score win-probability, auto-draft compliant proposals, and defend the call.",
+}
 
 export default function RootLayout({
   children,
