@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Moon, Sun } from "lucide-react"
 
@@ -30,7 +31,7 @@ export function SiteNav() {
       <nav
         className={cn(
           "flex w-full max-w-6xl items-center justify-between rounded-full border border-transparent px-4 py-2.5 transition-all duration-500",
-          scrolled && "glass-bar",
+          scrolled && "glass-bar"
         )}
       >
         <a href="#top" className="group flex items-center gap-2.5">
@@ -67,8 +68,16 @@ export function SiteNav() {
             <Sun className="hidden dark:block" />
             <Moon className="block dark:hidden" />
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden font-medium sm:inline-flex"
+            asChild
+          >
+            <Link href="/auth">Sign in</Link>
+          </Button>
           <Button size="sm" className="font-medium" asChild>
-            <a href="#access">Request access</a>
+            <Link href="/auth?mode=signup">Get started</Link>
           </Button>
         </div>
       </nav>

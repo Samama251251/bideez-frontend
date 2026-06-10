@@ -129,14 +129,14 @@ export function Pipeline() {
                   "group relative flex-1 rounded-2xl border px-4 py-3.5 text-left transition-all",
                   isActive
                     ? "border-primary/40 bg-primary/10 shadow-sm"
-                    : "glass-subtle hover:border-foreground/20",
+                    : "glass-subtle hover:border-foreground/20"
                 )}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={cn(
                       "font-mono text-[10px] tracking-[0.16em]",
-                      isActive ? "text-primary" : "text-muted-foreground",
+                      isActive ? "text-primary" : "text-muted-foreground"
                     )}
                   >
                     {p.tag}
@@ -150,13 +150,13 @@ export function Pipeline() {
                 <p
                   className={cn(
                     "mt-1 font-display text-base font-medium transition-colors",
-                    isActive ? "text-foreground" : "text-muted-foreground",
+                    isActive ? "text-foreground" : "text-muted-foreground"
                   )}
                 >
                   {p.title}
                 </p>
                 {isActive && (
-                  <span className="absolute -bottom-px left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary to-transparent sm:hidden" />
+                  <span className="absolute right-4 -bottom-px left-4 h-px bg-gradient-to-r from-transparent via-primary to-transparent sm:hidden" />
                 )}
               </button>
               {i < phases.length - 1 && (
@@ -172,7 +172,7 @@ export function Pipeline() {
       {/* detail panel */}
       <div
         key={current.id}
-        className="animate-rise glass rounded-3xl p-6 sm:p-8"
+        className="glass animate-rise rounded-3xl p-6 sm:p-8"
       >
         <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr]">
           <div>

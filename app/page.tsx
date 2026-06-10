@@ -69,7 +69,7 @@ function Hero() {
       {/* faint grid */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.4] [mask-image:radial-gradient(70%_55%_at_50%_0%,black,transparent)]"
+        className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(70%_55%_at_50%_0%,black,transparent)] opacity-[0.4]"
         style={{
           backgroundImage:
             "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",
@@ -88,20 +88,20 @@ function Hero() {
           </Badge>
         </div>
 
-        <h1 className="animate-rise mt-7 text-5xl leading-[0.98] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
+        <h1 className="mt-7 animate-rise text-5xl leading-[0.98] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
           Win the bids worth winning. Walk away from the rest.
         </h1>
 
-        <p className="animate-rise mt-7 max-w-xl text-lg leading-relaxed text-balance text-muted-foreground [animation-delay:60ms]">
+        <p className="mt-7 max-w-xl animate-rise text-lg leading-relaxed text-balance text-muted-foreground [animation-delay:60ms]">
           bideez reads every tender, scores your real chance of winning, and
-          flags the gaps that lose deals. Your team stops pouring weeks into bids
-          it was never going to win, and starts writing the ones it can.
+          flags the gaps that lose deals. Your team stops pouring weeks into
+          bids it was never going to win, and starts writing the ones it can.
         </p>
 
-        <div className="animate-rise mt-9 flex flex-wrap items-center justify-center gap-3 [animation-delay:120ms]">
+        <div className="mt-9 flex animate-rise flex-wrap items-center justify-center gap-3 [animation-delay:120ms]">
           <Button size="lg" className="h-11 px-5 text-[15px]" asChild>
             <a href="#access">
-              Request access
+              Get started
               <ArrowUpRight className="size-4" />
             </a>
           </Button>
@@ -115,7 +115,7 @@ function Hero() {
           </Button>
         </div>
 
-        <div className="animate-rise mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-xs text-muted-foreground [animation-delay:180ms]">
+        <div className="mt-10 flex animate-rise flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-xs text-muted-foreground [animation-delay:180ms]">
           <span className="flex items-center gap-1.5">
             <Check className="size-3.5" /> Decision gate before drafting
           </span>
@@ -146,8 +146,8 @@ function Thesis() {
             submit
           </span>
           . bideez decides{" "}
-          <span className="text-primary">before you draft</span> and prepares you{" "}
-          <span className="text-primary">for the call after</span>.
+          <span className="text-primary">before you draft</span> and prepares
+          you <span className="text-primary">for the call after</span>.
         </p>
         <p className="mx-auto mt-6 max-w-2xl text-muted-foreground">
           The gaps the engine catches during analysis are the exact questions a
@@ -289,7 +289,7 @@ function GateSection() {
 
         <div className="mt-12 grid gap-5 lg:grid-cols-2">
           {/* compliance checklist */}
-          <div className="rounded-3xl glass p-6">
+          <div className="glass rounded-3xl p-6">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-lg font-medium">
                 Compliance checklist
@@ -302,7 +302,7 @@ function GateSection() {
               {gateRequirements.map((r) => (
                 <li
                   key={r.label}
-                  className="flex items-center gap-3 rounded-xl glass-subtle px-3.5 py-2.5 text-sm"
+                  className="glass-subtle flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm"
                 >
                   <ChecklistIcon status={r.status} />
                   <span
@@ -337,7 +337,7 @@ function GateSection() {
           </div>
 
           {/* win dashboard */}
-          <div className="rounded-3xl glass p-6">
+          <div className="glass rounded-3xl p-6">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-lg font-medium">
                 Win-probability dashboard
@@ -366,7 +366,7 @@ function GateSection() {
               />
             </div>
 
-            <p className="mt-6 rounded-xl glass-subtle px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
+            <p className="glass-subtle mt-6 rounded-xl px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
               A breakdown across the factors that matter, never a single mystery
               number. Every score traces back to your company knowledge and your
               own track record.
@@ -375,10 +375,12 @@ function GateSection() {
         </div>
 
         {/* severity legend */}
-        <div className="mt-5 grid gap-4 rounded-3xl glass p-6 sm:grid-cols-3">
+        <div className="glass mt-5 grid gap-4 rounded-3xl p-6 sm:grid-cols-3">
           {severity.map((s) => (
             <div key={s.label} className="flex gap-3">
-              <span className={`mt-1.5 size-2 shrink-0 rounded-full ${s.dot}`} />
+              <span
+                className={`mt-1.5 size-2 shrink-0 rounded-full ${s.dot}`}
+              />
               <div>
                 <p className={`font-mono text-xs tracking-wide ${s.color}`}>
                   {s.label.toUpperCase()}
@@ -428,7 +430,7 @@ function CreateSection() {
 
         <div className="mt-12 grid gap-5 lg:grid-cols-[1.3fr_1fr]">
           {/* draft preview */}
-          <div className="overflow-hidden rounded-3xl glass">
+          <div className="glass overflow-hidden rounded-3xl">
             <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-5 py-3 font-mono text-[11px] text-muted-foreground">
               <PenLineDot /> draft / section-4.2-service-levels.md
             </div>
@@ -470,7 +472,7 @@ function CreateSection() {
           </div>
 
           {/* routing loop */}
-          <div className="flex flex-col gap-4 rounded-3xl glass p-6">
+          <div className="glass flex flex-col gap-4 rounded-3xl p-6">
             <h3 className="font-display text-lg font-medium">
               SME routing loop
             </h3>
@@ -487,7 +489,7 @@ function CreateSection() {
               ].map((step, i) => (
                 <li
                   key={step}
-                  className="flex items-center gap-3 rounded-xl glass-subtle px-3.5 py-3 text-sm"
+                  className="glass-subtle flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm"
                 >
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 font-mono text-[11px] text-primary">
                     {i + 1}
@@ -505,27 +507,28 @@ function CreateSection() {
 
 /* ------------------------------ LOOP ------------------------------ */
 
+const loopNodes = [
+  {
+    icon: Trophy,
+    tag: "Source",
+    title: "Bid outcome + human edits",
+    body: "Won or lost, with reasons. Plus every change a human made to an AI draft.",
+  },
+  {
+    icon: Brain,
+    tag: "Store",
+    title: "Tenant knowledge base",
+    body: "A 'mistakes not to make' memory accumulates across every workspace.",
+  },
+  {
+    icon: RefreshCw,
+    tag: "Destination",
+    title: "Smarter matcher & draft",
+    body: "“Logistics bids lose on delivery timelines” → that section gets strengthened next time, automatically.",
+  },
+]
+
 function LoopSection() {
-  const nodes = [
-    {
-      icon: Trophy,
-      tag: "Source",
-      title: "Bid outcome + human edits",
-      body: "Won or lost, with reasons. Plus every change a human made to an AI draft.",
-    },
-    {
-      icon: Brain,
-      tag: "Store",
-      title: "Tenant knowledge base",
-      body: "A 'mistakes not to make' memory accumulates across every workspace.",
-    },
-    {
-      icon: RefreshCw,
-      tag: "Destination",
-      title: "Smarter matcher & draft",
-      body: "“Logistics bids lose on delivery timelines” → that section gets strengthened next time, automatically.",
-    },
-  ]
   return (
     <section
       id="loop"
@@ -538,11 +541,11 @@ function LoopSection() {
           desc="A closed loop wired source → memory → downstream. Outcomes and edits feed a tenant-level memory that quietly reshapes how future bids are matched and drafted."
         />
         <div className="mt-12 grid items-stretch gap-4 md:grid-cols-3">
-          {nodes.map((n, i) => {
+          {loopNodes.map((n, i) => {
             const Icon = n.icon
             return (
               <div key={n.tag} className="relative">
-                <div className="h-full rounded-3xl glass p-6">
+                <div className="glass h-full rounded-3xl p-6">
                   <span className="font-mono text-[10px] tracking-[0.16em] text-primary uppercase">
                     {n.tag}
                   </span>
@@ -556,7 +559,7 @@ function LoopSection() {
                     {n.body}
                   </p>
                 </div>
-                {i < nodes.length - 1 && (
+                {i < loopNodes.length - 1 && (
                   <span className="absolute top-1/2 -right-3.5 z-10 hidden -translate-y-1/2 text-primary md:block">
                     →
                   </span>
@@ -576,7 +579,7 @@ function DefendSection() {
   return (
     <section className="px-4 py-24">
       <div className="mx-auto max-w-6xl">
-        <div className="relative overflow-hidden rounded-[2rem] glass p-8 sm:p-12">
+        <div className="glass relative overflow-hidden rounded-[2rem] p-8 sm:p-12">
           <div
             aria-hidden
             className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-primary/10 blur-3xl"
@@ -595,25 +598,26 @@ function DefendSection() {
                 </span>
               </div>
               <h2 className="mt-5 max-w-2xl font-display text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">
-                Then it rehearses you for the call that actually closes the deal.
+                Then it rehearses you for the call that actually closes the
+                deal.
               </h2>
               <p className="mt-4 max-w-xl text-muted-foreground">
-                An optional voice agent role-plays a skeptical buyer — asking the
-                hardest questions first, drawn from the exact gaps and
+                An optional voice agent role-plays a skeptical buyer — asking
+                the hardest questions first, drawn from the exact gaps and
                 heaviest-weighted criteria the engine already flagged. It scores
                 your defense and coaches the weak answers.
               </p>
               <div className="mt-6 flex flex-wrap gap-2 font-mono text-[11px] text-muted-foreground">
-                {["Ranked questions", "Live follow-ups", "Readiness score", "Model answers"].map(
-                  (t) => (
-                    <span
-                      key={t}
-                      className="glass-subtle rounded-full px-3 py-1"
-                    >
-                      {t}
-                    </span>
-                  ),
-                )}
+                {[
+                  "Ranked questions",
+                  "Live follow-ups",
+                  "Readiness score",
+                  "Model answers",
+                ].map((t) => (
+                  <span key={t} className="glass-subtle rounded-full px-3 py-1">
+                    {t}
+                  </span>
+                ))}
               </div>
             </div>
 
@@ -636,10 +640,10 @@ function DefendSection() {
 function CTA() {
   return (
     <section id="access" className="scroll-mt-24 px-4 pb-28">
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] glass px-6 py-16 text-center sm:py-20">
+      <div className="glass relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] px-6 py-16 text-center sm:py-20">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.4] [mask-image:radial-gradient(60%_60%_at_50%_120%,black,transparent)]"
+          className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(60%_60%_at_50%_120%,black,transparent)] opacity-[0.4]"
           style={{
             backgroundImage:
               "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",
@@ -659,7 +663,7 @@ function CTA() {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button size="lg" className="h-11 px-6 text-[15px]" asChild>
             <a href="mailto:hello@bideez.ai?subject=Early%20access">
-              Request access
+              Get started
               <ArrowUpRight className="size-4" />
             </a>
           </Button>
@@ -693,7 +697,10 @@ function Footer() {
           </span>
         </div>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#pipeline" className="transition-colors hover:text-foreground">
+          <a
+            href="#pipeline"
+            className="transition-colors hover:text-foreground"
+          >
             Pipeline
           </a>
           <a href="#gate" className="transition-colors hover:text-foreground">
@@ -772,7 +779,7 @@ function Gauge({
     <div className="grid gap-1.5">
       <div className="flex items-baseline justify-between">
         <span className="text-sm text-foreground">{label}</span>
-        <span className="font-mono text-sm tabular-nums text-muted-foreground">
+        <span className="font-mono text-sm text-muted-foreground tabular-nums">
           {value}
           <span className="text-muted-foreground/60">/100</span>
         </span>
