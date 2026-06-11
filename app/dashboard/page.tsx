@@ -1,7 +1,9 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
-import { LogOut, FileText } from "lucide-react"
+import { LogOut, FileText, Library } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
+import { CompanyEnrichment } from "@/components/dashboard/company-enrichment"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -105,15 +107,38 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-10 rounded-xl border border-border bg-muted/30 p-6 text-center">
-          <FileText className="mx-auto size-10 text-muted-foreground/50" />
-          <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
-            Upload Your RFP
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Drop your RFP, RFQ, or Tender document here to start the
-            AI-powered bid analysis pipeline.
-          </p>
+        {dbCompany && userRole === "owner" && (
+          <CompanyEnrichment email={user.email!} initialCompany={dbCompany} />
+        )}
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          <Link
+            href="/workspaces"
+            className="block rounded-xl border border-border bg-muted/30 p-6 text-center transition-colors hover:bg-muted/50"
+          >
+            <FileText className="mx-auto size-10 text-muted-foreground/50" />
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
+              Upload Your RFP
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              Drop your RFP, RFQ, or Tender document here to start the
+              AI-powered bid analysis pipeline.
+            </p>
+          </Link>
+
+          <Link
+            href="/library"
+            className="block rounded-xl border border-border bg-muted/30 p-6 text-center transition-colors hover:bg-muted/50"
+          >
+            <Library className="mx-auto size-10 text-muted-foreground/50" />
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
+              Company Library
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              Manage capability docs and past bid history used by the matcher
+              and win-probability dashboard.
+            </p>
+          </Link>
         </div>
       </div>
     </div>

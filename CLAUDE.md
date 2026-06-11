@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚠️ Next.js version caveat (read first)
 
-This is **Next.js 16 with Turbopack** — it has breaking changes vs. older Next.js you may know from training data (APIs, conventions, file structure). Per `AGENTS.md`: **read the relevant guide in `node_modules/next/dist/docs/` before writing Next.js code**, and heed deprecation notices. Don't assume older `pages/`-era or pre-16 App Router patterns.
+This is **Next.js 16 with Turbopack** — it has breaking changes vs. older Next.js you may know from training data (APIs, conventions, file structure). Per `AGENTS.md`: **read the relevant guide in `node_modules/next/dist/docs/` before writing Next.js code**, and heed deprecation notices. Don't assume older `pages/`-era or pre-16 App Router patterns
 
 ## Commands
 
