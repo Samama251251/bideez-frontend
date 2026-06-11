@@ -76,3 +76,73 @@ export interface RequirementsResponse {
   evaluationCriteria: CriterionItem[]
   questions: QuestionItem[]
 }
+
+/* ----------------------------------------------------------------------------
+ * Company Library — capability docs & historical bid data
+ * ------------------------------------------------------------------------- */
+
+export type BidOutcome = "win" | "loss"
+
+export interface Capability {
+  id: string
+  companyId: string
+  capRef: string | null
+  domain: string
+  projectSummary: string
+  certification: string | null
+  yearCompleted: number | null
+  contractValue: string | null
+  durationMonths: number | null
+  clientType: string | null
+  createdAt: string
+}
+
+export interface HistoricalBid {
+  id: string
+  companyId: string
+  bidRef: string | null
+  client: string | null
+  sector: string | null
+  budget: string | null
+  scorePercent: string | null
+  outcome: BidOutcome | null
+  responseTimeHours: number | null
+  compliancePercent: string | null
+  docPages: number | null
+  gapsFound: number | null
+  bidManager: string | null
+  submissionDate: string | null
+  createdAt: string
+}
+
+export interface ImportResult {
+  inserted: number
+  skipped: number
+  errors: string[]
+}
+
+export interface AddCapabilityInput {
+  capRef?: string | null
+  domain: string
+  projectSummary: string
+  certification?: string | null
+  yearCompleted?: number | null
+  contractValue?: string | null
+  durationMonths?: number | null
+  clientType?: string | null
+}
+
+export interface AddBidInput {
+  bidRef?: string | null
+  client?: string | null
+  sector?: string | null
+  budget?: string | null
+  scorePercent?: number | null
+  outcome?: BidOutcome | null
+  responseTimeHours?: number | null
+  compliancePercent?: number | null
+  docPages?: number | null
+  gapsFound?: number | null
+  bidManager?: string | null
+  submissionDate?: string | null
+}
