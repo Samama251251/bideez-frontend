@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { LogOut, FileText } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
+import { CompanyEnrichment } from "@/components/dashboard/company-enrichment"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -104,6 +105,10 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
+
+        {dbCompany && userRole === "owner" && (
+          <CompanyEnrichment email={user.email!} initialCompany={dbCompany} />
+        )}
 
         <div className="mt-10 rounded-xl border border-border bg-muted/30 p-6 text-center">
           <FileText className="mx-auto size-10 text-muted-foreground/50" />

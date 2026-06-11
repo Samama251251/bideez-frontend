@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowRight, Eye, EyeOff, Lock, Mail, User, Building, Loader2 } from "lucide-react"
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User, Building, Loader2, Globe, MapPin, Briefcase } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -37,6 +37,9 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
   const [password, setPassword] = React.useState("")
   const [role, setRole] = React.useState<Role>("owner")
   const [companyName, setCompanyName] = React.useState("")
+  const [domain, setDomain] = React.useState("")
+  const [location, setLocation] = React.useState("")
+  const [expertise, setExpertise] = React.useState("")
 
   const isSignup = mode === "signup"
   const isOnboarding = mode === "onboarding"
@@ -90,6 +93,9 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
             email: user.email,
             role,
             companyName,
+            domain: role === "owner" ? domain : undefined,
+            location: role === "owner" ? location : undefined,
+            department: role === "employee" ? expertise : undefined,
           }),
         })
 
@@ -143,6 +149,9 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
             email,
             role,
             companyName,
+            domain: role === "owner" ? domain : undefined,
+            location: role === "owner" ? location : undefined,
+            department: role === "employee" ? expertise : undefined,
           }),
         })
 
@@ -315,6 +324,45 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
               onChange={(e) => setCompanyName(e.target.value)}
               required
             />
+
+            {role === "owner" && (
+              <>
+                <Field
+                  id="domain"
+                  label="Company domain"
+                  icon={<Globe className="size-4" />}
+                  type="text"
+                  placeholder="acme.com"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  required
+                />
+
+                <Field
+                  id="location"
+                  label="Location"
+                  icon={<MapPin className="size-4" />}
+                  type="text"
+                  placeholder="San Francisco, CA"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  required
+                />
+              </>
+            )}
+
+            {role === "employee" && (
+              <Field
+                id="expertise"
+                label="Your expertise"
+                icon={<Briefcase className="size-4" />}
+                type="text"
+                placeholder="e.g. Cloud Security"
+                value={expertise}
+                onChange={(e) => setExpertise(e.target.value)}
+                required
+              />
+            )}
           </>
         )}
 
