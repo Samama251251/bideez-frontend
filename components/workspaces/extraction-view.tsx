@@ -1,11 +1,18 @@
 "use client"
 
 import * as React from "react"
-import { AlertCircle, FileText, Loader2, RotateCw, UploadCloud } from "lucide-react"
+import {
+  AlertCircle,
+  FileText,
+  Loader2,
+  RotateCw,
+  UploadCloud,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { StatusPill } from "@/components/workspaces/status-pill"
 import { AnalysisView } from "@/components/workspaces/analysis-view"
+import { PipelineStepper } from "@/components/workspaces/pipeline-stepper"
 import { getAccessToken, uploadFileToSignedUrl } from "@/lib/api/browser"
 import {
   confirmUploaded,
@@ -23,7 +30,8 @@ import type {
 
 const POLL_INTERVAL_MS = 2500
 const CLIENT_TIMEOUT_MS = 5 * 60 * 1000
-const ACCEPT = ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+const ACCEPT =
+  ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 /** Statuses we keep polling on. */
 function isProcessing(status: WorkspaceStatus) {
@@ -77,7 +85,8 @@ export function ExtractionView({
 
   /* --- Fetch requirements as soon as they're available ---------------- */
   React.useEffect(() => {
-    if (status !== "analyzing" && status !== "decision" && status !== "parsed") return
+    if (status !== "analyzing" && status !== "decision" && status !== "parsed")
+      return
     if (data) return
     let cancelled = false
     ;(async () => {
@@ -86,7 +95,10 @@ export function ExtractionView({
         const result = await getRequirements(workspaceId, token)
         if (!cancelled) setData(result)
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load requirements")
+        if (!cancelled)
+          setError(
+            err instanceof Error ? err.message : "Failed to load requirements"
+          )
       }
     })()
     return () => {
@@ -104,7 +116,10 @@ export function ExtractionView({
         const result = await getAnalysis(workspaceId, token)
         if (!cancelled) setAnalysis(result)
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load analysis")
+        if (!cancelled)
+          setError(
+            err instanceof Error ? err.message : "Failed to load analysis"
+          )
       }
     })()
     return () => {
@@ -118,7 +133,11 @@ export function ExtractionView({
     setUploadError(null)
     try {
       const token = await getAccessToken()
-      const { token: uploadToken, storagePath } = await getUploadUrl(workspaceId, file.name, token)
+      const { token: uploadToken, storagePath } = await getUploadUrl(
+        workspaceId,
+        file.name,
+        token
+      )
       await uploadFileToSignedUrl(storagePath, uploadToken, file)
       await confirmUploaded(workspaceId, storagePath, token)
       setStatus("parsing") // kicks off polling
@@ -143,51 +162,61 @@ export function ExtractionView({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
+          {title}
+        </h1>
         <StatusPill status={status} />
       </div>
 
-      {status === "intake" && (
-        <UploadPanel
-          uploading={uploading}
-          uploadError={uploadError}
-          accept={ACCEPT}
-          fileInputRef={fileInputRef}
-          onFile={handleFile}
-        />
+      {status === "failed" ? (
+        <FailedPanel error={error} onRetry={handleRetry} />
+      ) : (
+        <>
+          {/* Progress timeline — visible across the whole DECIDE flow. */}
+          <PipelineStepper status={status} uploading={uploading} />
+
+          {status === "intake" && (
+            <UploadPanel
+              uploading={uploading}
+              uploadError={uploadError}
+              accept={ACCEPT}
+              fileInputRef={fileInputRef}
+              onFile={handleFile}
+            />
+          )}
+
+          {status === "parsing" && (
+            <ProcessingPanel
+              message="Extracting requirements — parsing the document and pulling out mandatory clauses, evaluation criteria and questions."
+              timedOut={timedOut}
+              onRetry={handleRetry}
+            />
+          )}
+
+          {/* Extraction is done: surface the requirements while the gap
+              analysis keeps running in the background. */}
+          {status === "analyzing" && (
+            <>
+              <BackgroundBanner timedOut={timedOut} onRetry={handleRetry} />
+              <ExtractionPanel data={data} />
+            </>
+          )}
+
+          {/* Legacy rows that stopped at extraction. */}
+          {status === "parsed" && <ExtractionPanel data={data} />}
+
+          {status === "decision" &&
+            (analysis ? (
+              <AnalysisView
+                workspaceId={workspaceId}
+                analysis={analysis}
+                requirements={data}
+              />
+            ) : (
+              <LoadingPanel message="Loading the gap analysis…" />
+            ))}
+        </>
       )}
-
-      {status === "parsing" && (
-        <ProcessingPanel
-          message="Extracting requirements — parsing the document and pulling out mandatory clauses, evaluation criteria and questions."
-          timedOut={timedOut}
-          onRetry={handleRetry}
-        />
-      )}
-
-      {status === "analyzing" && (
-        <ProcessingPanel
-          message="Running the gap analysis — matching every requirement against your capabilities, past bids and knowledge base."
-          timedOut={timedOut}
-          onRetry={handleRetry}
-        />
-      )}
-
-      {status === "failed" && <FailedPanel error={error} onRetry={handleRetry} />}
-
-      {status === "decision" &&
-        (analysis ? (
-          <AnalysisView
-            workspaceId={workspaceId}
-            analysis={analysis}
-            requirements={data}
-          />
-        ) : (
-          <LoadingPanel message="Loading the gap analysis…" />
-        ))}
-
-      {/* Legacy rows that stopped at extraction. */}
-      {status === "parsed" && <ExtractionPanel data={data} />}
     </div>
   )
 }
@@ -245,7 +274,8 @@ function UploadPanel({
         {uploading ? "Uploading…" : "Upload your document"}
       </h2>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-        Drop a PDF or DOCX here, or browse. Extraction starts automatically once the upload finishes.
+        Drop a PDF or DOCX here, or browse. Extraction starts automatically once
+        the upload finishes.
       </p>
       {uploadError && <p className="mt-3 text-sm text-gap">{uploadError}</p>}
       <Button
@@ -275,7 +305,13 @@ function ProcessingPanel({
       <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
         <AlertCircle className="size-4 shrink-0" />
         This is taking longer than expected.
-        <Button type="button" variant="outline" size="sm" onClick={onRetry} className="ml-auto">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="ml-auto"
+        >
           <RotateCw className="size-3.5" /> Retry
         </Button>
       </div>
@@ -289,6 +325,44 @@ function ProcessingPanel({
   )
 }
 
+function BackgroundBanner({
+  timedOut,
+  onRetry,
+}: {
+  timedOut: boolean
+  onRetry: () => void
+}) {
+  if (timedOut) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+        <AlertCircle className="size-4 shrink-0" />
+        The gap analysis is taking longer than expected.
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="ml-auto"
+        >
+          <RotateCw className="size-3.5" /> Retry
+        </Button>
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
+      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+      <span className="leading-relaxed text-foreground/80">
+        <span className="font-medium text-foreground">
+          Gap analysis is running in the background.
+        </span>{" "}
+        Here are the requirements we extracted — the compliance matrix and
+        GO/NO-GO recommendation will appear here as soon as it finishes.
+      </span>
+    </div>
+  )
+}
+
 function LoadingPanel({ message }: { message: string }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
@@ -298,15 +372,30 @@ function LoadingPanel({ message }: { message: string }) {
   )
 }
 
-function FailedPanel({ error, onRetry }: { error: string | null; onRetry: () => void }) {
+function FailedPanel({
+  error,
+  onRetry,
+}: {
+  error: string | null
+  onRetry: () => void
+}) {
   return (
     <div className="rounded-2xl border border-gap/30 bg-gap/5 p-6">
       <div className="flex items-center gap-2 text-gap">
         <AlertCircle className="size-4" />
-        <h2 className="font-display text-base font-semibold tracking-tight">Extraction failed</h2>
+        <h2 className="font-display text-base font-semibold tracking-tight">
+          Extraction failed
+        </h2>
       </div>
-      <p className="mt-2 text-sm text-muted-foreground">{error ?? "Something went wrong."}</p>
-      <Button type="button" variant="outline" className="mt-4" onClick={onRetry}>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {error ?? "Something went wrong."}
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        className="mt-4"
+        onClick={onRetry}
+      >
         <RotateCw className="size-4" /> Retry
       </Button>
     </div>
@@ -329,14 +418,20 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
         <div className="flex flex-wrap gap-4 rounded-2xl border border-border bg-muted/30 p-4 text-sm">
           {data.buyerName && (
             <div>
-              <span className="font-mono text-[11px] tracking-wide text-muted-foreground">BUYER</span>
+              <span className="font-mono text-[11px] tracking-wide text-muted-foreground">
+                BUYER
+              </span>
               <p className="font-medium">{data.buyerName}</p>
             </div>
           )}
           {data.deadline && (
             <div>
-              <span className="font-mono text-[11px] tracking-wide text-muted-foreground">DEADLINE</span>
-              <p className="font-medium">{new Date(data.deadline).toLocaleDateString()}</p>
+              <span className="font-mono text-[11px] tracking-wide text-muted-foreground">
+                DEADLINE
+              </span>
+              <p className="font-medium">
+                {new Date(data.deadline).toLocaleDateString()}
+              </p>
             </div>
           )}
         </div>
@@ -344,7 +439,9 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
 
       {data.projectOverview && (
         <div className="rounded-2xl border border-border bg-muted/30 p-4">
-          <span className="font-mono text-[11px] tracking-wide text-muted-foreground">PROJECT OVERVIEW</span>
+          <span className="font-mono text-[11px] tracking-wide text-muted-foreground">
+            PROJECT OVERVIEW
+          </span>
           <p className="mt-1 text-sm leading-relaxed">{data.projectOverview}</p>
         </div>
       )}
@@ -352,7 +449,10 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
       <Section title="Requirements" count={data.requirements.length}>
         <ul className="space-y-2">
           {data.requirements.map((r) => (
-            <li key={r.id} className="rounded-lg border border-border bg-background/40 p-3 text-sm">
+            <li
+              key={r.id}
+              className="rounded-lg border border-border bg-background/40 p-3 text-sm"
+            >
               <div className="flex items-start justify-between gap-3">
                 <span>{r.text}</span>
                 <span
@@ -366,14 +466,19 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
                 </span>
               </div>
               {r.sourceAnchor && (
-                <p className="mt-1 font-mono text-[11px] text-muted-foreground">{r.sourceAnchor}</p>
+                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                  {r.sourceAnchor}
+                </p>
               )}
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section title="Evaluation criteria" count={data.evaluationCriteria.length}>
+      <Section
+        title="Evaluation criteria"
+        count={data.evaluationCriteria.length}
+      >
         <ul className="space-y-2">
           {data.evaluationCriteria.map((c) => (
             <li
@@ -394,10 +499,15 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
       <Section title="Questions" count={data.questions.length}>
         <ul className="space-y-2">
           {data.questions.map((q) => (
-            <li key={q.id} className="rounded-lg border border-border bg-background/40 p-3 text-sm">
+            <li
+              key={q.id}
+              className="rounded-lg border border-border bg-background/40 p-3 text-sm"
+            >
               {q.question}
               {q.sourceAnchor && (
-                <p className="mt-1 font-mono text-[11px] text-muted-foreground">{q.sourceAnchor}</p>
+                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                  {q.sourceAnchor}
+                </p>
               )}
             </li>
           ))}
@@ -420,8 +530,12 @@ function Section({
     <div>
       <div className="mb-3 flex items-center gap-2">
         <FileText className="size-4 text-muted-foreground" />
-        <h3 className="font-display text-sm font-semibold tracking-tight">{title}</h3>
-        <span className="font-mono text-[11px] text-muted-foreground">{count}</span>
+        <h3 className="font-display text-sm font-semibold tracking-tight">
+          {title}
+        </h3>
+        <span className="font-mono text-[11px] text-muted-foreground">
+          {count}
+        </span>
       </div>
       {count === 0 ? (
         <p className="text-sm text-muted-foreground">None extracted.</p>
