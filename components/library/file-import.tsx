@@ -1,17 +1,19 @@
 "use client"
 
 import * as React from "react"
-import { Loader2, Upload } from "lucide-react"
+import { Loader2, Upload, Sparkles, Zap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { ApiError } from "@/lib/api/workspaces"
+import type { ImportMethod } from "@/lib/api/library"
 import type { ImportResult } from "@/lib/api/types"
 
 export function FileImport({
   onImport,
   onImported,
 }: {
-  onImport: (file: File) => Promise<ImportResult>
+  onImport: (file: File, method: ImportMethod) => Promise<ImportResult>
   onImported: () => void
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -19,13 +21,14 @@ export function FileImport({
   const [error, setError] = React.useState<string | null>(null)
   const [result, setResult] = React.useState<ImportResult | null>(null)
   const [dragOver, setDragOver] = React.useState(false)
+  const [method, setMethod] = React.useState<ImportMethod>("normal")
 
   async function handleFile(file: File) {
     setLoading(true)
     setError(null)
     setResult(null)
     try {
-      const res = await onImport(file)
+      const res = await onImport(file, method)
       setResult(res)
       onImported()
     } catch (err) {
@@ -36,8 +39,51 @@ export function FileImport({
     }
   }
 
+  const fast = method === "normal"
+
   return (
     <div>
+      {/* Parsing-method toggle: fast deterministic vs. slower LLM extraction. */}
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          role="radiogroup"
+          aria-label="Import parsing method"
+          className="inline-flex rounded-lg border border-border bg-muted/20 p-0.5"
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={fast}
+            disabled={loading}
+            onClick={() => setMethod("normal")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50",
+              fast ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Zap className="size-3.5" /> Fast
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!fast}
+            disabled={loading}
+            onClick={() => setMethod("agentic")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50",
+              !fast ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Sparkles className="size-3.5" /> Accurate
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {fast
+            ? "Fast — instant rule-based parsing. Best for the standard template; can miss irregular files."
+            : "Accurate — AI reads the file. Slower, but handles unusual layouts and column names."}
+        </p>
+      </div>
+
       <div
         onDragOver={(e) => {
           e.preventDefault()

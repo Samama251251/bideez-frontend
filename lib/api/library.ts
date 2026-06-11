@@ -7,6 +7,14 @@
 import { ApiError } from "./workspaces"
 import type { AddBidInput, AddCapabilityInput, Capability, HistoricalBid, ImportResult } from "./types"
 
+/**
+ * How a bulk import turns the file into rows:
+ *   - `normal`  — fast deterministic spreadsheet parsing (relies on the fixed
+ *     dataset layout; can be less accurate on irregular files).
+ *   - `agentic` — slower LLM extraction (tolerates layout drift, more accurate).
+ */
+export type ImportMethod = "normal" | "agentic"
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ""
 
 async function request<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
@@ -78,9 +86,10 @@ export function addCapability(body: AddCapabilityInput, token?: string) {
   )
 }
 
-export function importCapabilities(file: File, token?: string) {
+export function importCapabilities(file: File, method: ImportMethod = "normal", token?: string) {
   const formData = new FormData()
   formData.append("file", file)
+  formData.append("method", method)
   return requestForm<ImportResult>("/api/library/capabilities/import", formData, token)
 }
 
@@ -104,9 +113,10 @@ export function addBid(body: AddBidInput, token?: string) {
   )
 }
 
-export function importBids(file: File, token?: string) {
+export function importBids(file: File, method: ImportMethod = "normal", token?: string) {
   const formData = new FormData()
   formData.append("file", file)
+  formData.append("method", method)
   return requestForm<ImportResult>("/api/library/bids/import", formData, token)
 }
 

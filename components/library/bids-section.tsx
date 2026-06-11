@@ -88,9 +88,9 @@ export function BidsSection({ initial }: { initial: HistoricalBid[] }) {
   return (
     <div className="space-y-6">
       <FileImport
-        onImport={async (file) => {
+        onImport={async (file, method) => {
           const token = await getAccessToken()
-          return libraryApi.importBids(file, token)
+          return libraryApi.importBids(file, method, token)
         }}
         onImported={refresh}
       />

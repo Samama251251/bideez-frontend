@@ -81,9 +81,9 @@ export function CapabilitiesSection({ initial }: { initial: Capability[] }) {
   return (
     <div className="space-y-6">
       <FileImport
-        onImport={async (file) => {
+        onImport={async (file, method) => {
           const token = await getAccessToken()
-          return libraryApi.importCapabilities(file, token)
+          return libraryApi.importCapabilities(file, method, token)
         }}
         onImported={refresh}
       />
