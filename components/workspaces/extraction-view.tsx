@@ -270,6 +270,13 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
         </div>
       )}
 
+      {data.projectOverview && (
+        <div className="rounded-2xl border border-border bg-muted/30 p-4">
+          <span className="font-mono text-[11px] tracking-wide text-muted-foreground">PROJECT OVERVIEW</span>
+          <p className="mt-1 text-sm leading-relaxed">{data.projectOverview}</p>
+        </div>
+      )}
+
       <Section title="Requirements" count={data.requirements.length}>
         <ul className="space-y-2">
           {data.requirements.map((r) => (

@@ -72,6 +72,7 @@ export interface RequirementsResponse {
   sourceText: string | null
   deadline: string | null
   buyerName: string | null
+  projectOverview: string | null
   requirements: RequirementItem[]
   evaluationCriteria: CriterionItem[]
   questions: QuestionItem[]
