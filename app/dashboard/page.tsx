@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { LogOut, FileText } from "lucide-react"
 
@@ -110,7 +111,10 @@ export default async function DashboardPage() {
           <CompanyEnrichment email={user.email!} initialCompany={dbCompany} />
         )}
 
-        <div className="mt-10 rounded-xl border border-border bg-muted/30 p-6 text-center">
+        <Link
+          href="/workspaces"
+          className="mt-10 block rounded-xl border border-border bg-muted/30 p-6 text-center transition-colors hover:bg-muted/50"
+        >
           <FileText className="mx-auto size-10 text-muted-foreground/50" />
           <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
             Upload Your RFP
@@ -119,7 +123,7 @@ export default async function DashboardPage() {
             Drop your RFP, RFQ, or Tender document here to start the
             AI-powered bid analysis pipeline.
           </p>
-        </div>
+        </Link>
       </div>
     </div>
   )
