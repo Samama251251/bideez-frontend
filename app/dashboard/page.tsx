@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { LogOut, FileText, Library } from "lucide-react"
+import { LogOut, FileText, Library, BookOpen } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
 import { CompanyEnrichment } from "@/components/dashboard/company-enrichment"
@@ -137,6 +137,20 @@ export default async function DashboardPage() {
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
               Manage capability docs and past bid history used by the matcher
               and win-probability dashboard.
+            </p>
+          </Link>
+
+          <Link
+            href="/knowledge"
+            className="block rounded-xl border border-border bg-muted/30 p-6 text-center transition-colors hover:bg-muted/50 sm:col-span-2"
+          >
+            <BookOpen className="mx-auto size-10 text-muted-foreground/50" />
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
+              Knowledge Base
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              Upload policies, certifications and past proposals. Parsed into the
+              evidence the gap analysis cites for every requirement.
             </p>
           </Link>
         </div>

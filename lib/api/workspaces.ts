@@ -7,8 +7,11 @@
  * NEVER sent — the backend derives it from the token.
  */
 import type {
+  AnalysisResponse,
   CreateWorkspaceResponse,
+  DecisionResponse,
   DocumentType,
+  GoDecision,
   RequirementsResponse,
   StatusResponse,
   UploadUrlResponse,
@@ -98,6 +101,28 @@ export function getRequirements(workspaceId: string, token?: string) {
   return request<RequirementsResponse>(
     `/api/workspaces/${workspaceId}/requirements`,
     {},
+    token
+  )
+}
+
+/** Phase 2 — gap analysis + recommendation. Available once status === "decision". */
+export function getAnalysis(workspaceId: string, token?: string) {
+  return request<AnalysisResponse>(
+    `/api/workspaces/${workspaceId}/analysis`,
+    {},
+    token
+  )
+}
+
+/** Record the human GO/NO-GO decision. Only valid while status === "decision". */
+export function recordDecision(
+  workspaceId: string,
+  decision: Exclude<GoDecision, "pending">,
+  token?: string
+) {
+  return request<DecisionResponse>(
+    `/api/workspaces/${workspaceId}/decision`,
+    { method: "POST", body: JSON.stringify({ decision }) },
     token
   )
 }

@@ -5,19 +5,30 @@ import { AlertCircle, FileText, Loader2, RotateCw, UploadCloud } from "lucide-re
 
 import { Button } from "@/components/ui/button"
 import { StatusPill } from "@/components/workspaces/status-pill"
+import { AnalysisView } from "@/components/workspaces/analysis-view"
 import { getAccessToken, uploadFileToSignedUrl } from "@/lib/api/browser"
 import {
   confirmUploaded,
+  getAnalysis,
   getRequirements,
   getStatus,
   getUploadUrl,
   retryWorkspace,
 } from "@/lib/api/workspaces"
-import type { RequirementsResponse, WorkspaceStatus } from "@/lib/api/types"
+import type {
+  AnalysisResponse,
+  RequirementsResponse,
+  WorkspaceStatus,
+} from "@/lib/api/types"
 
-const POLL_INTERVAL_MS = 2000
+const POLL_INTERVAL_MS = 2500
 const CLIENT_TIMEOUT_MS = 5 * 60 * 1000
 const ACCEPT = ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+/** Statuses we keep polling on. */
+function isProcessing(status: WorkspaceStatus) {
+  return status === "parsing" || status === "analyzing"
+}
 
 export function ExtractionView({
   workspaceId,
@@ -36,11 +47,12 @@ export function ExtractionView({
   const [uploadError, setUploadError] = React.useState<string | null>(null)
   const [timedOut, setTimedOut] = React.useState(false)
   const [data, setData] = React.useState<RequirementsResponse | null>(null)
+  const [analysis, setAnalysis] = React.useState<AnalysisResponse | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
-  /* --- Poll while parsing --------------------------------------------- */
+  /* --- Poll while parsing / analyzing --------------------------------- */
   React.useEffect(() => {
-    if (status !== "parsing") return
+    if (!isProcessing(status)) return
     setTimedOut(false)
     const start = Date.now()
 
@@ -63,9 +75,10 @@ export function ExtractionView({
     return () => clearInterval(interval)
   }, [status, workspaceId])
 
-  /* --- Fetch extraction once when parsed ------------------------------ */
+  /* --- Fetch requirements as soon as they're available ---------------- */
   React.useEffect(() => {
-    if (status !== "parsed") return
+    if (status !== "analyzing" && status !== "decision" && status !== "parsed") return
+    if (data) return
     let cancelled = false
     ;(async () => {
       try {
@@ -79,7 +92,25 @@ export function ExtractionView({
     return () => {
       cancelled = true
     }
-  }, [status, workspaceId])
+  }, [status, workspaceId, data])
+
+  /* --- Fetch the gap analysis once at the decision gate --------------- */
+  React.useEffect(() => {
+    if (status !== "decision" || analysis) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const token = await getAccessToken()
+        const result = await getAnalysis(workspaceId, token)
+        if (!cancelled) setAnalysis(result)
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load analysis")
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [status, workspaceId, analysis])
 
   /* --- Upload (intake → parsing) -------------------------------------- */
   async function handleFile(file: File) {
@@ -126,13 +157,37 @@ export function ExtractionView({
         />
       )}
 
-      {status === "parsing" && <ParsingPanel timedOut={timedOut} onRetry={handleRetry} />}
+      {status === "parsing" && (
+        <ProcessingPanel
+          message="Extracting requirements — parsing the document and pulling out mandatory clauses, evaluation criteria and questions."
+          timedOut={timedOut}
+          onRetry={handleRetry}
+        />
+      )}
+
+      {status === "analyzing" && (
+        <ProcessingPanel
+          message="Running the gap analysis — matching every requirement against your capabilities, past bids and knowledge base."
+          timedOut={timedOut}
+          onRetry={handleRetry}
+        />
+      )}
 
       {status === "failed" && <FailedPanel error={error} onRetry={handleRetry} />}
 
-      {status === "parsed" && <ExtractionPanel data={data} />}
+      {status === "decision" &&
+        (analysis ? (
+          <AnalysisView
+            workspaceId={workspaceId}
+            analysis={analysis}
+            requirements={data}
+          />
+        ) : (
+          <LoadingPanel message="Loading the gap analysis…" />
+        ))}
 
-      {/* Later: analyzing / decision panels (gap analysis + GO/NO-GO). */}
+      {/* Legacy rows that stopped at extraction. */}
+      {status === "parsed" && <ExtractionPanel data={data} />}
     </div>
   )
 }
@@ -206,7 +261,15 @@ function UploadPanel({
   )
 }
 
-function ParsingPanel({ timedOut, onRetry }: { timedOut: boolean; onRetry: () => void }) {
+function ProcessingPanel({
+  message,
+  timedOut,
+  onRetry,
+}: {
+  message: string
+  timedOut: boolean
+  onRetry: () => void
+}) {
   if (timedOut) {
     return (
       <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
@@ -219,9 +282,18 @@ function ParsingPanel({ timedOut, onRetry }: { timedOut: boolean; onRetry: () =>
     )
   }
   return (
+    <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
+      <Loader2 className="mt-0.5 size-4 shrink-0 animate-spin" />
+      <span className="leading-relaxed">{message} Updates automatically.</span>
+    </div>
+  )
+}
+
+function LoadingPanel({ message }: { message: string }) {
+  return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
       <Loader2 className="size-4 shrink-0 animate-spin" />
-      Extracting requirements — this can take a minute on large documents. Updates automatically.
+      {message}
     </div>
   )
 }

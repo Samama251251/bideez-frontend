@@ -6,9 +6,9 @@
 export type WorkspaceStatus =
   | "intake" // created, awaiting file upload
   | "parsing" // LlamaParse + extraction running
-  | "parsed" // extraction complete (terminal for now)
-  | "analyzing" // (later) gap analysis
-  | "decision" // (later) awaiting GO/NO-GO
+  | "parsed" // legacy: extraction complete (kept for old rows)
+  | "analyzing" // matcher + gap analysis running
+  | "decision" // analysis done — awaiting human GO/NO-GO (terminal for now)
   | "drafting"
   | "review"
   | "finalized"
@@ -17,8 +17,11 @@ export type WorkspaceStatus =
 
 export type DocumentType = "rfp" | "rfq" | "tender"
 
-/** Terminal states for the extraction flow — stop polling here. */
-export const TERMINAL_STATUSES: WorkspaceStatus[] = ["parsed", "failed"]
+/** Processing statuses to keep polling on. */
+export const PROCESSING_STATUSES: WorkspaceStatus[] = ["parsing", "analyzing"]
+
+/** Terminal states for the DECIDE flow — stop polling here. */
+export const TERMINAL_STATUSES: WorkspaceStatus[] = ["decision", "failed"]
 
 export interface WorkspaceSummary {
   id: string
@@ -76,6 +79,91 @@ export interface RequirementsResponse {
   requirements: RequirementItem[]
   evaluationCriteria: CriterionItem[]
   questions: QuestionItem[]
+}
+
+/* ----------------------------------------------------------------------------
+ * Phase 2 — Gap analysis / GO·NO-GO (the DECIDE gate)
+ * ------------------------------------------------------------------------- */
+
+export type GoDecision = "pending" | "go" | "no_go"
+
+/** Severity of a requirement gap. `none` = fully matched. */
+export type GapSeverity = "none" | "critical" | "scored" | "minor"
+
+export type EvidenceSourceType =
+  | "capability"
+  | "historical_bid"
+  | "knowledge_document"
+
+export interface AnalysisEvidence {
+  sourceType: EvidenceSourceType
+  sourceId: string
+  snippet: string
+  confidence: number // 0–100, this evidence's contribution
+  sourceAnchor: string | null // sub-doc location, or null
+}
+
+export interface AnalysisRequirement {
+  id: string
+  kind: "mandatory" | "compliance"
+  text: string
+  sourceAnchor: string | null
+  isMatched: boolean
+  matchConfidence: number | null // 0–100, or null if never scored
+  gapSeverity: GapSeverity
+  evidence: AnalysisEvidence[]
+}
+
+export interface WinProbabilitySubScore {
+  score: number
+  rationale: string
+}
+
+export interface WinProbability {
+  overall: number
+  budgetAlignment: WinProbabilitySubScore
+  competitorPresence: WinProbabilitySubScore
+  pastWinRateInDomain: WinProbabilitySubScore
+}
+
+export interface ChecklistItem {
+  requirementId: string
+  text: string
+  status: "pass" | "fail"
+  gapSeverity: GapSeverity
+}
+
+export interface AnalysisChecklist {
+  items: ChecklistItem[]
+  passCount: number
+  failCount: number
+}
+
+export interface AnalysisResponse {
+  status: WorkspaceStatus
+  goDecision: GoDecision // the recorded human decision
+  recommendedDecision: GoDecision // the system recommendation
+  decisionRationale: string
+  winProbability: WinProbability // ⚠ v1 placeholder (pass-rate derived)
+  requirements: AnalysisRequirement[]
+  checklist: AnalysisChecklist
+}
+
+export interface DecisionResponse {
+  goDecision: GoDecision
+}
+
+/* ----------------------------------------------------------------------------
+ * Company Knowledge Base — uploaded evidence docs that feed the matcher
+ * ------------------------------------------------------------------------- */
+
+export interface KnowledgeDocument {
+  id: string
+  title: string
+  /** true once parsing finished and the markdown is stored (sourceText !== null). */
+  ready: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 /* ----------------------------------------------------------------------------

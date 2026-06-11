@@ -41,7 +41,7 @@ export default async function WorkspaceDetailPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-12">
+    <div className="mx-auto w-full max-w-4xl px-4 py-12">
       <Link
         href="/workspaces"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"

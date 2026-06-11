@@ -6,7 +6,7 @@ const LABELS: Record<WorkspaceStatus, string> = {
   parsing: "Extracting",
   parsed: "Extracted",
   analyzing: "Analyzing",
-  decision: "Decision",
+  decision: "Ready to decide",
   drafting: "Drafting",
   review: "Review",
   finalized: "Finalized",
@@ -18,6 +18,7 @@ const LABELS: Record<WorkspaceStatus, string> = {
 function toneClass(status: WorkspaceStatus): string {
   switch (status) {
     case "parsed":
+    case "decision":
     case "finalized":
       return "bg-go/10 text-go"
     case "failed":
