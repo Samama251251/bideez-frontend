@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight, Eye, EyeOff, Lock, Mail, User, Building, Loader2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -12,12 +12,20 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { createClient } from "@/lib/supabase/client"
 
-type Mode = "signin" | "signup"
+type Mode = "signin" | "signup" | "onboarding"
 type Role = "owner" | "employee"
 
 export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
   const router = useRouter()
-  const [mode, setMode] = React.useState<Mode>(initialMode)
+  const searchParams = useSearchParams()
+
+  // Client-side detection of onboarding mode — this is the definitive source
+  // of truth, because the URL ?onboarding=true is always present when needed.
+  const resolvedInitialMode: Mode = searchParams.get("onboarding") === "true"
+    ? "onboarding"
+    : initialMode
+
+  const [mode, setMode] = React.useState<Mode>(resolvedInitialMode)
   const [showPassword, setShowPassword] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -31,6 +39,23 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
   const [companyName, setCompanyName] = React.useState("")
 
   const isSignup = mode === "signup"
+  const isOnboarding = mode === "onboarding"
+
+  async function handleGoogleAuth() {
+    setLoading(true)
+    setError(null)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -41,12 +66,48 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
     try {
       const supabase = createClient()
 
+      if (isOnboarding) {
+        // Pre-flight check
+        if (role === "employee") {
+          const checkRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-company?name=${encodeURIComponent(companyName)}`
+          )
+          if (checkRes.status === 404) {
+            throw new Error(`No company named "${companyName}" exists. Please check the name or contact your company's founder.`)
+          }
+          if (!checkRes.ok) throw new Error("Failed to verify company. Please try again.")
+        }
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError || !user) throw new Error("Could not fetch user session. Please try signing in again.")
+
+        // Call backend to create user profile & company in our DB
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+            email: user.email,
+            role,
+            companyName,
+          }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.message || data.error || "Profile creation failed. Please contact support.")
+        }
+        
+        router.push("/dashboard")
+        return
+      }
+
       if (isSignup) {
         // Pre-flight check: If they are joining as a member, ensure the company exists FIRST
         // so we don't create an orphaned Supabase auth user.
         if (role === "employee") {
           const checkRes = await fetch(
-            `http://localhost:5000/api/auth/check-company?name=${encodeURIComponent(companyName)}`
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-company?name=${encodeURIComponent(companyName)}`
           )
           if (checkRes.status === 404) {
             throw new Error(
@@ -74,7 +135,7 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
         if (signUpError) throw signUpError
 
         // 2. Call backend to create user profile & company in our DB
-        const res = await fetch("http://localhost:5000/api/auth/signup", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -127,49 +188,65 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
       </Link>
 
       <h1 className="font-display text-2xl font-semibold tracking-tight">
-        {isSignup ? "Create your account" : "Welcome back"}
+        {isOnboarding ? "Complete your profile" : isSignup ? "Create your account" : "Welcome back"}
       </h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        {isSignup
-          ? "Start scoring opportunities in minutes."
-          : "Sign in to pick up where you left off."}
+        {isOnboarding
+          ? "Tell us a bit about your role to get started."
+          : isSignup
+            ? "Start scoring opportunities in minutes."
+            : "Sign in to pick up where you left off."}
       </p>
 
       {/* mode toggle */}
-      <div className="mt-6 grid grid-cols-2 gap-1 rounded-full border border-border bg-muted/40 p-1">
-        {(["signin", "signup"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => {
-              setMode(m)
-              setError(null)
-            }}
-            className={cn(
-              "rounded-full py-1.5 text-sm font-medium transition-colors",
-              mode === m
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {m === "signin" ? "Sign in" : "Sign up"}
-          </button>
-        ))}
-      </div>
+      {!isOnboarding && (
+        <div className="mt-6 grid grid-cols-2 gap-1 rounded-full border border-border bg-muted/40 p-1">
+          {(["signin", "signup"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => {
+                setMode(m)
+                setError(null)
+              }}
+              className={cn(
+                "rounded-full py-1.5 text-sm font-medium transition-colors",
+                mode === m
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {m === "signin" ? "Sign in" : "Sign up"}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* SSO */}
-      <Button type="button" variant="outline" className="mt-6 w-full">
-        <GoogleIcon className="size-4" />
-        Continue with Google
-      </Button>
+      {!isOnboarding && (
+        <>
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="mt-6 w-full"
+            onClick={handleGoogleAuth}
+            disabled={loading}
+          >
+            <GoogleIcon className="size-4" />
+            Continue with Google
+          </Button>
 
-      <div className="my-6 flex items-center gap-3">
-        <Separator className="flex-1" />
-        <span className="font-mono text-[11px] tracking-wide text-muted-foreground">
-          OR
-        </span>
-        <Separator className="flex-1" />
-      </div>
+          <div className="my-6 flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="font-mono text-[11px] tracking-wide text-muted-foreground">
+              OR
+            </span>
+            <Separator className="flex-1" />
+          </div>
+        </>
+      )}
+
+      {isOnboarding && <div className="mt-6" />}
 
       {error && (
         <div className="mb-4 rounded-lg bg-destructive/15 p-3 text-sm text-destructive">
@@ -184,7 +261,7 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {isSignup && (
+        {(isSignup || isOnboarding) && (
           <>
             <div className="space-y-2">
               <Label>I am a...</Label>
@@ -216,16 +293,18 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
               </div>
             </div>
 
-            <Field
-              id="name"
-              label="Full name"
-              icon={<User className="size-4" />}
-              type="text"
-              autoComplete="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+            {!isOnboarding && (
+              <Field
+                id="name"
+                label="Full name"
+                icon={<User className="size-4" />}
+                type="text"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            )}
 
             <Field
               id="companyName"
@@ -239,60 +318,66 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
           </>
         )}
 
-        <Field
-          id="email"
-          label="Work email"
-          icon={<Mail className="size-4" />}
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            {!isSignup && (
-              <a
-                href="#"
-                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Forgot password?
-              </a>
-            )}
-          </div>
-          <div className="relative">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-              <Lock className="size-4" />
-            </span>
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete={isSignup ? "new-password" : "current-password"}
-              className="px-9"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+        {!isOnboarding && (
+          <>
+            <Field
+              id="email"
+              label="Work email"
+              icon={<Mail className="size-4" />}
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute inset-y-0 right-3 flex items-center text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
-            </button>
-          </div>
-        </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                {!isSignup && (
+                  <a
+                    href="#"
+                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Forgot password?
+                  </a>
+                )}
+              </div>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                  <Lock className="size-4" />
+                </span>
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete={isSignup ? "new-password" : "current-password"}
+                  className="px-9"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (
             <Loader2 className="size-4 animate-spin" />
+          ) : isOnboarding ? (
+            "Complete Profile"
           ) : isSignup ? (
             "Create account"
           ) : (
@@ -302,21 +387,23 @@ export function AuthForm({ initialMode = "signin" }: { initialMode?: Mode }) {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-        <button
-          type="button"
-          onClick={() => {
-            setMode(isSignup ? "signin" : "signup")
-            setError(null)
-          }}
-          className="font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          {isSignup ? "Sign in" : "Sign up"}
-        </button>
-      </p>
+      {!isOnboarding && (
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setMode(isSignup ? "signin" : "signup")
+              setError(null)
+            }}
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            {isSignup ? "Sign in" : "Sign up"}
+          </button>
+        </p>
+      )}
 
-      {isSignup && (
+      {(isSignup || isOnboarding) && (
         <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
           By creating an account you agree to our{" "}
           <a href="#" className="underline underline-offset-2">

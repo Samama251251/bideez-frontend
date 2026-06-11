@@ -30,22 +30,28 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const pathname = request.nextUrl.pathname
+  const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/")
+
   // Redirect unauthenticated users away from protected routes
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
-    request.nextUrl.pathname !== "/"
-  ) {
+  if (!user && !isAuthRoute && pathname !== "/") {
     const url = request.nextUrl.clone()
     url.pathname = "/auth"
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from auth page
-  if (user && request.nextUrl.pathname === "/auth") {
-    const url = request.nextUrl.clone()
-    url.pathname = "/dashboard"
-    return NextResponse.redirect(url)
+  // Redirect authenticated users away from /auth UNLESS:
+  //   1. They are on /auth?onboarding=true (completing their Google profile)
+  //   2. They are hitting /auth/callback (exchanging the OAuth code)
+  //   3. They are hitting /auth/signout (signing out)
+  if (user && pathname === "/auth") {
+    const isOnboarding =
+      request.nextUrl.searchParams.get("onboarding") === "true"
+    if (!isOnboarding) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/dashboard"
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse

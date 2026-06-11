@@ -12,10 +12,10 @@ const valueProps = [
 export default async function AuthPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mode?: string }>
+  searchParams: Promise<{ mode?: string; onboarding?: string }>
 }) {
-  const { mode } = await searchParams
-  const initialMode = mode === "signup" ? "signup" : "signin"
+  const { mode, onboarding } = await searchParams
+  const initialMode = onboarding === "true" ? "onboarding" : mode === "signup" ? "signup" : "signin"
 
   return (
     <div className="relative grid min-h-svh lg:grid-cols-[1.05fr_1fr]">

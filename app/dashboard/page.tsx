@@ -15,21 +15,31 @@ export default async function DashboardPage() {
   }
 
   // Fetch the true user profile from our database
-  let dbUser = null
-  let dbCompany = null
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile?email=${encodeURIComponent(user.email!)}`,
+    { cache: "no-store" }
+  )
 
-  try {
-    const res = await fetch(`http://localhost:5000/api/auth/profile?email=${encodeURIComponent(user.email!)}`, { cache: 'no-store' })
-    if (res.ok) {
-      const data = await res.json()
-      dbUser = data.user
-      dbCompany = data.company
-    }
-  } catch (error) {
-    console.error("Failed to fetch profile", error)
+  // If the profile doesn't exist OR onboarding is incomplete, redirect
+  if (!res.ok) {
+    redirect("/auth?onboarding=true")
   }
 
-  const userName = dbUser?.name || user.user_metadata?.name || user.email?.split("@")[0] || "User"
+  const profileData = await res.json()
+
+  if (!profileData.onboardingComplete) {
+    redirect("/auth?onboarding=true")
+  }
+
+  const dbUser = profileData.user
+  const dbCompany = profileData.company
+
+  const userName =
+    dbUser?.name ||
+    user.user_metadata?.name ||
+    user.user_metadata?.full_name ||
+    user.email?.split("@")[0] ||
+    "User"
   const userRole = dbUser?.role || "employee"
   const companyName = dbCompany?.name || null
 
