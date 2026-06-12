@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2, Mail, RefreshCw, Unplug, Wifi } from "lucide-react"
+import { CalendarCheck, CalendarClock, Loader2, Mail, RefreshCw, Unplug, Wifi } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { getAccessToken } from "@/lib/api/browser"
@@ -99,7 +99,8 @@ export function IntegrationsPanel() {
         </div>
         <p className="text-sm text-muted-foreground mb-4">
           Connect your Gmail inbox and we&apos;ll automatically detect incoming RFPs every
-          ~2 minutes — no forwarding filter needed.
+          ~2 minutes — no forwarding filter needed. We&apos;ll also add each RFP&apos;s
+          submission deadline to your Google Calendar as a reminder.
         </p>
 
         {loadingGmail ? (
@@ -107,21 +108,34 @@ export function IntegrationsPanel() {
             <Loader2 className="size-4 animate-spin" /> Loading…
           </div>
         ) : gmailIsConnected ? (
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-go/10 px-3 py-1 text-xs font-medium text-go">
-              <span className="size-1.5 rounded-full bg-go" />
-              Connected as {gmailStatus!.emailAddress}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleConnectGmail}
-              disabled={connectingGmail}
-              className="gap-1.5 text-muted-foreground"
-            >
-              <Unplug className="size-3.5" />
-              Reconnect
-            </Button>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-go/10 px-3 py-1 text-xs font-medium text-go">
+                <span className="size-1.5 rounded-full bg-go" />
+                Connected as {gmailStatus!.emailAddress}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleConnectGmail}
+                disabled={connectingGmail}
+                className="gap-1.5 text-muted-foreground"
+              >
+                <Unplug className="size-3.5" />
+                Reconnect
+              </Button>
+            </div>
+            {gmailStatus!.calendarConnected ? (
+              <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarCheck className="size-3.5 text-go" />
+                Deadline reminders are synced to your Google Calendar.
+              </p>
+            ) : (
+              <p className="inline-flex items-center gap-1.5 text-xs text-gap">
+                <CalendarClock className="size-3.5" />
+                Reconnect to add RFP deadlines to your Google Calendar.
+              </p>
+            )}
           </div>
         ) : gmailNeedsReconnect ? (
           <div className="space-y-3">
