@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { LogOut, FileText, Library, BookOpen } from "lucide-react"
+import { LogOut, FileText, Library, BookOpen, Inbox, Settings2 } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
 import { CompanyEnrichment } from "@/components/dashboard/company-enrichment"
@@ -151,6 +151,34 @@ export default async function DashboardPage() {
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
               Upload policies, certifications and past proposals. Parsed into the
               evidence the gap analysis cites for every requirement.
+            </p>
+          </Link>
+
+          <Link
+            href="/review"
+            className="block rounded-xl border border-border bg-muted/30 p-6 text-center transition-colors hover:bg-muted/50"
+          >
+            <Inbox className="mx-auto size-10 text-muted-foreground/50" />
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
+              Review Queue
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              Approve or reject RFPs detected from forwarded email or your connected
+              Gmail inbox.
+            </p>
+          </Link>
+
+          <Link
+            href="/settings"
+            className="block rounded-xl border border-border bg-muted/30 p-6 text-center transition-colors hover:bg-muted/50"
+          >
+            <Settings2 className="mx-auto size-10 text-muted-foreground/50" />
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
+              Settings
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              Connect Gmail or get your forwarding address to feed RFPs into the
+              review queue automatically.
             </p>
           </Link>
         </div>
