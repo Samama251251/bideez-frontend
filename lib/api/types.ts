@@ -258,7 +258,16 @@ export interface RfpCandidate {
   subject: string | null
   attachmentFilename: string | null
   promotedWorkspaceId: string | null
+  /** Present on research_agent candidates — the original web page. */
+  sourceRef?: { url: string; searchTitle: string } | null
   createdAt: string
+}
+
+export interface ResearchAgentRunResult {
+  queriesRun: number
+  resultsScanned: number
+  candidatesCreated: number
+  duplicatesSkipped: number
 }
 
 export interface IntakeAddressResponse {

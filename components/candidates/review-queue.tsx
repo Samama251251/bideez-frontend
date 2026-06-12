@@ -6,17 +6,26 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
+  ExternalLink,
   FileText,
+  Globe,
   Loader2,
   Mail,
   Paperclip,
   RefreshCw,
+  Search,
   XCircle,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { getAccessToken } from "@/lib/api/browser"
-import { approveCandidate, listCandidates, rejectCandidate } from "@/lib/api/candidates"
+import {
+  approveCandidate,
+  listCandidates,
+  rejectCandidate,
+  runResearchAgent,
+} from "@/lib/api/candidates"
 import type { RfpCandidate, RfpCandidateStatus } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
 
@@ -29,13 +38,19 @@ const TABS: { label: string; value: RfpCandidateStatus }[] = [
 const SOURCE_LABELS: Record<string, string> = {
   gmail: "Gmail",
   manual: "Manual",
-  research_agent: "Research",
+  research_agent: "Web Search",
 }
 
 function fitColor(score: number): string {
   if (score >= 70) return "text-go bg-go/10"
   if (score >= 40) return "text-scored bg-scored/10"
   return "text-gap bg-gap/10"
+}
+
+function fitBarColor(score: number): string {
+  if (score >= 70) return "bg-go"
+  if (score >= 40) return "bg-scored"
+  return "bg-gap"
 }
 
 function formatDeadline(iso: string | null): string {
@@ -61,6 +76,7 @@ export function ReviewQueue() {
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [acting, setActing] = React.useState<Record<string, "approving" | "rejecting">>({})
+  const [searching, setSearching] = React.useState(false)
 
   // Manual refresh trigger: incrementing this causes the effect to re-run.
   const [refreshTick, setRefreshTick] = React.useState(0)
@@ -108,6 +124,40 @@ export function ReviewQueue() {
     return () => clearInterval(id)
   }, [tab])
 
+  async function handleFindRfps() {
+    if (searching) return
+    setSearching(true)
+    const toastId = toast.loading("Searching the web for relevant RFPs…")
+    try {
+      const token = await getAccessToken()
+      const result = await runResearchAgent(token)
+      toast.dismiss(toastId)
+      if (result.candidatesCreated > 0) {
+        toast.success(
+          `Found ${result.candidatesCreated} new ${result.candidatesCreated === 1 ? "opportunity" : "opportunities"}`
+        )
+        // Switch to pending and reload if not already there
+        if (tab === "pending") {
+          setRefreshTick((n) => n + 1)
+        } else {
+          setTab("pending")
+        }
+      } else if (result.duplicatesSkipped > 0) {
+        toast.info("No new RFPs found — all results already in your queue.")
+      } else {
+        toast.info(
+          "No matching RFPs found on this search. Try updating your capabilities or company description."
+        )
+      }
+    } catch (err) {
+      toast.dismiss(toastId)
+      const msg = err instanceof Error ? err.message : "Research agent run failed"
+      toast.error(msg)
+    } finally {
+      setSearching(false)
+    }
+  }
+
   async function handleApprove(id: string) {
     setActing((prev) => ({ ...prev, [id]: "approving" }))
     try {
@@ -146,29 +196,46 @@ export function ReviewQueue() {
 
   return (
     <div>
-      {/* Tabs */}
-      <div className="mb-6 flex items-center gap-1 rounded-xl border border-border bg-muted/20 p-1 w-fit">
-        {TABS.map((t) => (
+      {/* Toolbar: tabs + Find RFPs button */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/20 p-1 w-fit">
+          {TABS.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setTab(t.value)}
+              className={cn(
+                "rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
+                tab === t.value
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
           <button
-            key={t.value}
-            onClick={() => setTab(t.value)}
-            className={cn(
-              "rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
-              tab === t.value
-                ? "bg-background shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
+            onClick={() => setRefreshTick((n) => n + 1)}
+            className="ml-2 rounded-lg p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Refresh"
           >
-            {t.label}
+            <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
           </button>
-        ))}
-        <button
-          onClick={() => setRefreshTick((n) => n + 1)}
-          className="ml-2 rounded-lg p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Refresh"
+        </div>
+
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleFindRfps}
+          disabled={searching}
+          className="gap-1.5"
         >
-          <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
-        </button>
+          {searching ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Search className="size-3.5" />
+          )}
+          {searching ? "Searching…" : "Find RFPs for us"}
+        </Button>
       </div>
 
       {loading ? (
@@ -186,7 +253,7 @@ export function ReviewQueue() {
           <Mail className="mx-auto size-9 text-muted-foreground/40 mb-3" />
           <p className="text-sm text-muted-foreground">
             {tab === "pending"
-              ? "No pending candidates. Forward an RFP email or connect Gmail to start receiving them."
+              ? 'No pending candidates. Forward an RFP email, connect Gmail, or click "Find RFPs for us" to search the web.'
               : `No ${tab} candidates.`}
           </p>
         </div>
@@ -220,6 +287,7 @@ function CandidateCard({
 }) {
   const score = Number(c.domainFitScore)
   const busy = !!acting
+  const isWebSearch = c.source === "research_agent"
 
   return (
     <div className="rounded-xl border border-border bg-muted/20 p-5 transition-colors hover:bg-muted/30">
@@ -227,7 +295,16 @@ function CandidateCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+            {/* Source badge */}
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                isWebSearch
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-muted text-muted-foreground"
+              )}
+            >
+              {isWebSearch ? <Globe className="size-2.5" /> : <Mail className="size-2.5" />}
               {SOURCE_LABELS[c.source] ?? c.source}
             </span>
             {c.status !== "pending" && (
@@ -263,6 +340,26 @@ function CandidateCard({
         </div>
       </div>
 
+      {/* Fit bar — prominent for web search candidates */}
+      {isWebSearch && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wide">
+              Domain fit
+            </span>
+            <span className={cn("text-[11px] font-semibold", fitColor(score).split(" ")[0])}>
+              {score}%
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className={cn("h-full rounded-full transition-all", fitBarColor(score))}
+              style={{ width: `${Math.min(score, 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Meta row */}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {c.deadline && (
@@ -287,7 +384,26 @@ function CandidateCard({
           <FileText className="size-3" />
           {timeAgo(c.createdAt)}
         </span>
+        {/* View Source link for web-search candidates */}
+        {isWebSearch && c.sourceRef?.url && (
+          <a
+            href={c.sourceRef.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-primary hover:underline"
+          >
+            <ExternalLink className="size-3" />
+            View source
+          </a>
+        )}
       </div>
+
+      {/* Classification reason — shown as subtitle for web-search candidates */}
+      {isWebSearch && c.classificationReason && (
+        <p className="mt-2 text-xs text-muted-foreground italic leading-relaxed">
+          {c.classificationReason}
+        </p>
+      )}
 
       {/* Overview */}
       {c.projectOverview && (
@@ -296,8 +412,8 @@ function CandidateCard({
         </p>
       )}
 
-      {/* Classification reason */}
-      {c.classificationReason && (
+      {/* Classification reason expandable for non-web-search */}
+      {!isWebSearch && c.classificationReason && (
         <details className="mt-2">
           <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground select-none">
             Why flagged as RFP

@@ -6,6 +6,7 @@ import type {
   ApproveCandidateResponse,
   GmailStatus,
   IntakeAddressResponse,
+  ResearchAgentRunResult,
   RfpCandidate,
   RfpCandidateStatus,
 } from "./types"
@@ -37,6 +38,16 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string):
 
   const text = await res.text()
   return (text ? JSON.parse(text) : undefined) as T
+}
+
+/* ---- Research Agent ---- */
+
+export function runResearchAgent(token?: string) {
+  return request<ResearchAgentRunResult>(
+    "/api/research-agent/run",
+    { method: "POST" },
+    token
+  )
 }
 
 /* ---- Candidates ---- */
