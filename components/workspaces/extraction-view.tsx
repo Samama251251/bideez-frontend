@@ -57,6 +57,7 @@ export function ExtractionView({
   initialGoDecision,
   userId,
   userRole,
+  companyId,
 }: {
   workspaceId: string
   title: string
@@ -67,6 +68,7 @@ export function ExtractionView({
   /** Current user — passed through to BidProposalView for role-aware SME review. */
   userId: string
   userRole: "owner" | "employee"
+  companyId: string
 }) {
   const router = useRouter()
   const [status, setStatus] = React.useState<WorkspaceStatus>(initialStatus)
@@ -220,7 +222,7 @@ export function ExtractionView({
       ) : (
         <>
           {/* Progress timeline — visible across the whole DECIDE flow. */}
-          <PipelineStepper status={status} uploading={uploading} />
+          <PipelineStepper status={status} uploading={uploading} workspaceId={workspaceId} companyId={companyId} title={title} />
 
           {status === "intake" && (
             <UploadPanel
@@ -277,7 +279,7 @@ export function ExtractionView({
 
           {/* CREATE phase — proposal ready for review / finalized */}
           {(status === "review" || status === "finalized") && (
-            <BidProposalView workspaceId={workspaceId} userId={userId} userRole={userRole} />
+            <BidProposalView workspaceId={workspaceId} userId={userId} userRole={userRole} companyId={companyId} />
           )}
         </>
       )}

@@ -1,9 +1,11 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Check, Loader2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { WorkspaceStatus } from "@/lib/api/types"
+import { getLatestRehearsalScore } from "@/lib/api/rehearsal"
 
 type StepState = "pending" | "active" | "done"
 
@@ -14,11 +16,12 @@ type Step = {
   state: StepState
   /** Show a spinner instead of a static dot while this step is working. */
   loading: boolean
+  href?: string
 }
 
 /**
- * Vertical progress timeline for the DECIDE flow:
- * Upload → Extract requirements → Gap analysis → Decision.
+ * Vertical progress timeline for the DECIDE → DEFEND flow:
+ * Upload → Extract requirements → Gap analysis → Decision → Proposal → Defend.
  *
  * State is derived purely from the workspace status (+ the transient
  * `uploading` flag), so it stays in lock-step with the poller.
@@ -26,11 +29,24 @@ type Step = {
 export function PipelineStepper({
   status,
   uploading,
+  workspaceId,
+  companyId,
+  title,
 }: {
   status: WorkspaceStatus
   uploading: boolean
+  workspaceId: string
+  companyId: string
+  title: string
 }) {
-  const steps = buildSteps(status, uploading)
+  const [rehearsalScore, setRehearsalScore] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (status !== "finalized") return
+    getLatestRehearsalScore(workspaceId).then(setRehearsalScore)
+  }, [status, workspaceId])
+
+  const steps = buildSteps(status, uploading, rehearsalScore, workspaceId, companyId, title)
 
   return (
     <ol className="rounded-2xl border border-border bg-muted/20 p-5">
@@ -51,16 +67,25 @@ export function PipelineStepper({
             <StepNode state={step.state} loading={step.loading} />
 
             <div className="pt-0.5">
-              <p
-                className={cn(
-                  "text-sm font-medium",
-                  step.state === "pending"
-                    ? "text-muted-foreground"
-                    : "text-foreground"
-                )}
-              >
-                {step.label}
-              </p>
+              {step.href && step.state !== "pending" ? (
+                <a
+                  href={step.href}
+                  className="text-sm font-medium text-foreground transition-colors hover:text-primary"
+                >
+                  {step.label}
+                </a>
+              ) : (
+                <p
+                  className={cn(
+                    "text-sm font-medium",
+                    step.state === "pending"
+                      ? "text-muted-foreground"
+                      : "text-foreground"
+                  )}
+                >
+                  {step.label}
+                </p>
+              )}
               <p
                 className={cn(
                   "text-xs",
@@ -118,14 +143,24 @@ const PHASE_RANK: Record<WorkspaceStatus, number> = {
   archived: 0,
 }
 
-function buildSteps(status: WorkspaceStatus, uploading: boolean): Step[] {
+function buildSteps(
+  status: WorkspaceStatus,
+  uploading: boolean,
+  rehearsalScore: number | null,
+  workspaceId: string,
+  companyId: string,
+  title: string
+): Step[] {
   const rank = PHASE_RANK[status]
-  // `intake` means the upload step is current; it only spins while uploading.
   const uploadDone = rank >= 1
   const extractDone = rank >= 2
   const analysisDone = rank >= 3
   const decideDone = rank >= 4
   const proposalDone = rank >= 5
+  const defendActive = proposalDone
+  const defendDone = proposalDone && rehearsalScore !== null
+
+  const rehearsalHref = `/dashboard/rehearsal?workspaceId=${encodeURIComponent(workspaceId)}&companyId=${encodeURIComponent(companyId)}&title=${encodeURIComponent(title)}`
 
   return [
     {
@@ -184,6 +219,20 @@ function buildSteps(status: WorkspaceStatus, uploading: boolean): Step[] {
             ? "AI is drafting your proposal…"
             : "Pending"
           : "Pending",
+    },
+    {
+      key: "defend",
+      label: defendDone
+        ? `DEFEND — Readiness: ${rehearsalScore}%`
+        : "DEFEND",
+      state: defendDone ? "done" : defendActive ? "active" : "pending",
+      loading: false,
+      sub: defendDone
+        ? "Rehearsal scored — rehearse again?"
+        : defendActive
+          ? "Practice the buyer call with voice AI"
+          : "Available after proposal is finalized",
+      href: rehearsalHref,
     },
   ]
 }
