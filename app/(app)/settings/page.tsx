@@ -1,6 +1,4 @@
 import { redirect } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Settings2 } from "lucide-react"
 import { Suspense } from "react"
 
 import { createClient } from "@/lib/supabase/server"
@@ -14,21 +12,16 @@ export default async function SettingsPage() {
   if (!user) redirect("/auth")
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-12">
-      <Link
-        href="/dashboard"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> Dashboard
-      </Link>
-
-      <div className="mb-8 flex items-center gap-2.5">
-        <Settings2 className="size-5 text-primary" />
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Settings</h1>
+    <div className="mx-auto w-full max-w-2xl px-6 py-8">
+      <div className="mb-6">
+        <h1 className="font-display text-xl font-semibold tracking-tight">Settings</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Configure integrations and account preferences.
+        </p>
       </div>
 
       <div className="mb-4">
-        <h2 className="font-display text-base font-semibold tracking-tight">Integrations</h2>
+        <h2 className="font-display text-sm font-semibold tracking-tight">Integrations</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">
           Connect email sources so inbound RFPs land in your review queue automatically.
         </p>

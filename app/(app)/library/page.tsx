@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation"
-import { Library } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
 import * as libraryApi from "@/lib/api/library"
@@ -27,20 +26,17 @@ export default async function LibraryPage() {
     ])
     capabilities = capRes.capabilities
     bids = bidRes.bids
-  } catch {
-    // Backend unreachable / empty — render empty state.
-  }
+  } catch {}
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-12">
-      <div className="mb-2 flex items-center gap-2.5">
-        <Library className="size-5 text-primary" />
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Company library</h1>
+    <div className="mx-auto w-full max-w-5xl px-6 py-8">
+      <div className="mb-6">
+        <h1 className="font-display text-xl font-semibold tracking-tight">Company library</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Capability docs and past bid history feed the matcher and win-probability dashboard.
+          Upload a CSV/XLSX or add rows manually.
+        </p>
       </div>
-      <p className="mb-8 text-sm text-muted-foreground">
-        Capability docs and past bid history feed the matcher and win-probability dashboard.
-        Upload a CSV/XLSX or add rows manually.
-      </p>
 
       <LibraryTabs initialCapabilities={capabilities} initialBids={bids} />
     </div>

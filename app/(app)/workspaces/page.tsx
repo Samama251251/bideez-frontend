@@ -1,6 +1,6 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowRight, LayoutGrid } from "lucide-react"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
 import { listWorkspaces } from "@/lib/api/workspaces"
@@ -29,17 +29,19 @@ export default async function WorkspacesPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-12">
-      <div className="mb-8 flex items-center gap-2.5">
-        <LayoutGrid className="size-5 text-primary" />
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Workspaces</h1>
+    <div className="mx-auto w-full max-w-3xl px-6 py-8">
+      <div className="mb-6">
+        <h1 className="font-display text-xl font-semibold tracking-tight">Workspaces</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Each workspace runs one RFP through the full bid-analysis pipeline.
+        </p>
       </div>
 
       <CreateWorkspace />
 
-      <div className="mt-8 space-y-3">
+      <div className="mt-6 space-y-2">
         {workspaces.length === 0 ? (
-          <p className="rounded-2xl border border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+          <p className="rounded-xl border border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
             No workspaces yet. Create one above to start the bid-analysis pipeline.
           </p>
         ) : (
@@ -47,7 +49,7 @@ export default async function WorkspacesPage() {
             <Link
               key={ws.id}
               href={`/workspaces/${ws.id}`}
-              className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/20 p-4 transition-colors hover:bg-muted/40"
+              className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/30"
             >
               <div className="min-w-0">
                 <p className="truncate font-medium">{ws.title}</p>

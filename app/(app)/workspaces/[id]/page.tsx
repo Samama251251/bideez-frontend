@@ -1,6 +1,4 @@
-import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
 import { getStatus, listWorkspaces } from "@/lib/api/workspaces"
@@ -31,24 +29,14 @@ export default async function WorkspaceDetailPage({
     notFound()
   }
 
-  // Title isn't on the status payload; resolve it from the list (cheap, cached no-store).
   let title = "Workspace"
   try {
     const { workspaces } = await listWorkspaces(token)
     title = workspaces.find((w) => w.id === id)?.title ?? title
-  } catch {
-    // fall back to generic title
-  }
+  } catch {}
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-12">
-      <Link
-        href="/workspaces"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> Workspaces
-      </Link>
-
+    <div className="mx-auto w-full max-w-4xl px-6 py-8">
       <ExtractionView
         workspaceId={id}
         title={title}
