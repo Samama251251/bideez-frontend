@@ -105,6 +105,7 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
+    breakInside: "avoid",
   },
   tableCol: {
     borderStyle: "solid",
@@ -171,7 +172,8 @@ function renderMarkdownToPDF(text: string) {
          const colWidth = `${100 / headers.length}%`;
          elements.push(
            <View style={styles.table} key={`table-${elements.length}`}>
-             <View style={styles.tableRow}>
+             {/* Header row — keep together, don't split */}
+             <View style={styles.tableRow} wrap={false}>
                {headers.map((h, i) => (
                  <View style={{...styles.tableCol, width: colWidth}} key={`th-${i}`}>
                    <Text style={styles.tableCellHeader}>{parseInlineMarkdown(h)}</Text>
@@ -179,7 +181,8 @@ function renderMarkdownToPDF(text: string) {
                ))}
              </View>
              {dataRows.map((row, r) => (
-               <View style={styles.tableRow} key={`row-${r}`}>
+               /* Each data row must not split across a page break */
+               <View style={styles.tableRow} wrap={false} key={`row-${r}`}>
                  {row.map((cell, c) => (
                    <View style={{...styles.tableCol, width: colWidth}} key={`td-${c}`}>
                      <Text style={styles.tableCell}>{parseInlineMarkdown(cell)}</Text>
@@ -212,11 +215,11 @@ function renderMarkdownToPDF(text: string) {
     }
 
     if (line.startsWith('### ')) {
-      elements.push(<Text key={`h3-${i}`} style={styles.heading3}>{parseInlineMarkdown(line.replace('### ', ''))}</Text>);
+      elements.push(<Text key={`h3-${i}`} style={styles.heading3} minPresenceAhead={40}>{parseInlineMarkdown(line.replace('### ', ''))}</Text>);
     } else if (line.startsWith('## ')) {
-      elements.push(<Text key={`h2-${i}`} style={styles.heading2}>{parseInlineMarkdown(line.replace('## ', ''))}</Text>);
+      elements.push(<Text key={`h2-${i}`} style={styles.heading2} minPresenceAhead={50}>{parseInlineMarkdown(line.replace('## ', ''))}</Text>);
     } else if (line.startsWith('# ')) {
-      elements.push(<Text key={`h1-${i}`} style={styles.heading1}>{parseInlineMarkdown(line.replace('# ', ''))}</Text>);
+      elements.push(<Text key={`h1-${i}`} style={styles.heading1} minPresenceAhead={60}>{parseInlineMarkdown(line.replace('# ', ''))}</Text>);
     } else if (line.startsWith('- ') || line.startsWith('* ')) {
       elements.push(
         <View key={`li-${i}`} style={styles.listItem}>
@@ -285,13 +288,10 @@ export function ProposalPDFDocument({ proposal }: { proposal: ProposalResponse }
         {/* Render Sections with Markdown Parsing */}
         {proposal.sections.map((section) => (
           <View key={section.id} style={{ marginBottom: 15 }}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            
-            {/* 
-              Notice: The isPlaceholder banner warning is INTENTIONALLY REMOVED here. 
-              The finalized exported PDF should look professional and not leak internal
-              "Input Required" warnings into the actual document.
-            */}
+            {/* minPresenceAhead prevents the title from orphaning at the bottom of a page */}
+            <Text style={styles.sectionTitle} minPresenceAhead={60}>
+              {section.title}
+            </Text>
 
             <View>
               {renderMarkdownToPDF(effectiveContent(section))}
