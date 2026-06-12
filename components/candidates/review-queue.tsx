@@ -392,7 +392,7 @@ function CandidateCard({
                 className={cn(
                   "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
                   c.status === "approved" && "bg-go/10 text-go",
-                  c.status === "rejected" && "bg-gap/10 text-gap",
+                  c.status === "rejected" && "bg-red-500 text-black shadow-sm",
                   c.status === "duplicate" && "bg-muted text-muted-foreground"
                 )}
               >
@@ -412,11 +412,11 @@ function CandidateCard({
         <div
           className={cn(
             "min-w-[3.5rem] shrink-0 rounded-lg px-3 py-1.5 text-center",
-            fitColor(score)
+            score < 40 ? "bg-red-500 text-black shadow-sm" : fitColor(score)
           )}
         >
           <p className="text-lg font-bold leading-none">{score}</p>
-          <p className="text-[10px] uppercase tracking-wide opacity-70">fit</p>
+          <p className={cn("text-[10px] uppercase tracking-wide", score < 40 ? "opacity-80 font-semibold" : "opacity-70")}>fit</p>
         </div>
       </div>
 
@@ -517,10 +517,9 @@ function CandidateCard({
           {onReject && (
             <Button
               size="sm"
-              variant="outline"
               onClick={onReject}
               disabled={busy}
-              className="gap-1.5 text-gap hover:text-gap"
+              className="gap-1.5 bg-red-500 text-black border-red-600 hover:bg-red-500/90 hover:text-black shadow-sm"
             >
               {acting === "rejecting" ? (
                 <Loader2 className="size-3.5 animate-spin" />
