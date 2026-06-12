@@ -35,12 +35,6 @@ interface SidebarProps {
 export function Sidebar({ userName, companyName }: SidebarProps) {
   const pathname = usePathname()
   const { resolvedTheme, setTheme } = useTheme()
-  const initials = userName
-    .split(" ")
-    .map((n) => n[0] ?? "")
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
 
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
@@ -102,9 +96,11 @@ export function Sidebar({ userName, companyName }: SidebarProps) {
       {/* User footer */}
       <div className="border-t border-sidebar-border p-3">
         <div className="mb-1.5 flex items-center gap-2.5 rounded-md px-2 py-1.5">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-accent-foreground text-xs font-semibold">
-            {initials}
-          </div>
+          <img 
+            src="/avatar.png" 
+            alt={userName} 
+            className="size-8 shrink-0 rounded-full object-cover shadow-sm ring-1 ring-sidebar-border" 
+          />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-sidebar-foreground leading-tight">
               {userName}
