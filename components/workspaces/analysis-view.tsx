@@ -529,8 +529,8 @@ function RequirementRow({
                 {meta.label}
               </span>
               {req.userOverride && (
-                <span className="rounded-full bg-purple-500/10 px-2 py-0.5 text-[11px] font-medium text-purple-500">
-                  Human override
+                <span className="rounded-full bg-foreground/8 px-2 py-0.5 text-[11px] font-medium text-foreground/50">
+                  overridden
                 </span>
               )}
             </div>
@@ -538,8 +538,8 @@ function RequirementRow({
             <p className="mt-2 text-sm leading-relaxed">{req.text}</p>
 
             {req.userNote && (
-              <p className="mt-1.5 border-l-2 border-purple-400/40 pl-3 text-[12px] italic leading-relaxed text-muted-foreground">
-                Override note: {req.userNote}
+              <p className="mt-1.5 border-l border-border pl-3 text-[12px] italic leading-relaxed text-muted-foreground">
+                {req.userNote}
               </p>
             )}
 
@@ -582,12 +582,7 @@ function RequirementRow({
           <button
             type="button"
             onClick={() => setOverrideOpen(true)}
-            className={cn(
-              "mt-0.5 flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
-              req.userOverride
-                ? "text-purple-500 hover:bg-purple-500/10"
-                : "text-muted-foreground/60 hover:bg-muted hover:text-muted-foreground"
-            )}
+            className="mt-0.5 flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground/50 transition-colors hover:bg-muted hover:text-muted-foreground"
           >
             <Pencil className="size-3" />
             Override
