@@ -426,6 +426,9 @@ export interface GmailStatus {
   connected: boolean
   emailAddress?: string
   status?: "active" | "revoked" | "error"
+  /** Whether the connection also granted Google Calendar access (deadline reminders).
+   *  False for inboxes connected before calendar sync shipped — prompt a reconnect. */
+  calendarConnected?: boolean
 }
 
 export interface ApproveCandidateResponse {
