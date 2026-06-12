@@ -28,6 +28,7 @@ import {
 } from "@/lib/api/workspaces"
 import type {
   AnalysisResponse,
+  ProposalVendor,
   RequirementCategory,
   RequirementItem,
   RequirementsResponse,
@@ -58,6 +59,7 @@ export function ExtractionView({
   userId,
   userRole,
   companyId,
+  vendor,
 }: {
   workspaceId: string
   title: string
@@ -69,6 +71,8 @@ export function ExtractionView({
   userId: string
   userRole: "owner" | "employee"
   companyId: string
+  /** Responding company's real details — passed through to BidProposalView for PDF export. */
+  vendor?: ProposalVendor
 }) {
   const router = useRouter()
   const [status, setStatus] = React.useState<WorkspaceStatus>(initialStatus)
@@ -279,7 +283,7 @@ export function ExtractionView({
 
           {/* CREATE phase — proposal ready for review / finalized */}
           {(status === "review" || status === "finalized") && (
-            <BidProposalView workspaceId={workspaceId} userId={userId} userRole={userRole} companyId={companyId} />
+            <BidProposalView workspaceId={workspaceId} userId={userId} userRole={userRole} companyId={companyId} vendor={vendor} />
           )}
         </>
       )}

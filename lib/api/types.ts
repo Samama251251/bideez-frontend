@@ -240,6 +240,20 @@ export interface ProposalResponse {
   assignableMembers: AssignableMember[]
 }
 
+/**
+ * The responding company's real details, used to fill the "Contractor" block
+ * of the exported PDF proposal. Sourced from the tenant's company profile
+ * (`/api/auth/profile` → `company`) plus the exporting user's email.
+ * Any field may be null when the profile hasn't been enriched yet — the
+ * exporter omits null fields rather than printing a placeholder.
+ */
+export interface ProposalVendor {
+  name: string | null
+  address: string | null
+  website: string | null
+  email: string | null
+}
+
 export interface UpdateSectionResponse {
   id: string
   sectionType: ProposalSectionType

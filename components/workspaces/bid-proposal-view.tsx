@@ -49,6 +49,7 @@ import type {
   ProposalResponse,
   ProposalSection,
   ProposalSectionType,
+  ProposalVendor,
   WorkingMemory,
 } from "@/lib/api/types"
 
@@ -80,11 +81,14 @@ export function BidProposalView({
   userId,
   userRole,
   companyId,
+  vendor,
 }: {
   workspaceId: string
   userId: string
   userRole: "owner" | "employee"
   companyId: string
+  /** Responding company's real details — fills the Contractor block on PDF export. */
+  vendor?: ProposalVendor
 }) {
   const isOwner = userRole === "owner"
 
@@ -177,7 +181,7 @@ export function BidProposalView({
     setExportingPdf(true)
     try {
       const blob = await pdf(
-        <ProposalPDFDocument proposal={proposal} />
+        <ProposalPDFDocument proposal={proposal} vendor={vendor} />
       ).toBlob()
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")

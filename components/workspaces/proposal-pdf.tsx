@@ -8,7 +8,7 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer"
-import type { ProposalResponse, ProposalSection } from "@/lib/api/types"
+import type { ProposalResponse, ProposalSection, ProposalVendor } from "@/lib/api/types"
 
 /* -------------------------------------------------------------------------
  * Styles
@@ -244,11 +244,30 @@ function effectiveContent(s: ProposalSection): string {
   return s.humanContent ?? s.content ?? ""
 }
 
+/**
+ * Renders a "Label: value" line, but only when a real value exists — so the
+ * exported proposal never prints a bracketed placeholder for missing data.
+ */
+function InfoLine({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null
+  return (
+    <Text style={styles.colText}>
+      {label}: {value}
+    </Text>
+  )
+}
+
 /* -------------------------------------------------------------------------
  * PDF Document
  * ------------------------------------------------------------------------- */
 
-export function ProposalPDFDocument({ proposal }: { proposal: ProposalResponse }) {
+export function ProposalPDFDocument({
+  proposal,
+  vendor,
+}: {
+  proposal: ProposalResponse
+  vendor?: ProposalVendor
+}) {
   const deadline = proposal.deadline
     ? new Date(proposal.deadline).toLocaleDateString("en-US", {
         year: "numeric",
@@ -257,31 +276,34 @@ export function ProposalPDFDocument({ proposal }: { proposal: ProposalResponse }
       })
     : "As per RFP"
 
+  const vendorName = vendor?.name ?? null
+  const documentTitle = vendorName
+    ? `Bid Proposal — ${vendorName} for ${proposal.buyerName ?? "RFP Response"}`
+    : `Bid Proposal — ${proposal.buyerName ?? "RFP Response"}`
+
   return (
     <Document
-      title={`Bid Proposal — ${proposal.buyerName ?? "RFP Response"}`}
-      author="Bideez"
+      title={documentTitle}
+      author={vendorName ?? "Bideez"}
       subject="Bid Proposal"
     >
       <Page size="A4" style={styles.page} wrap>
         <Text style={styles.header}>
-          Bid proposal template
+          Bid Proposal
         </Text>
-        
+
         <View style={styles.columnsContainer}>
           <View style={styles.column}>
             <Text style={styles.colHeading}>Client</Text>
-            <Text style={styles.colText}>Name: {proposal.buyerName ?? "[Client Name]"}</Text>
-            <Text style={styles.colText}>Address: [Client Address]</Text>
-            <Text style={styles.colText}>Phone no. &amp; email: [Client Contact]</Text>
+            <InfoLine label="Name" value={proposal.buyerName} />
             <Text style={{ marginTop: 15 }}>Deadline: {deadline}</Text>
           </View>
           <View style={styles.column}>
             <Text style={styles.colHeading}>Contractor</Text>
-            <Text style={styles.colText}>Name: Bideez Vendor</Text>
-            <Text style={styles.colText}>Address: [Contractor Address]</Text>
-            <Text style={styles.colText}>Phone no. &amp; email: [Contractor Contact]</Text>
-            <Text style={{ marginTop: 15 }}>Job Number: {proposal.workspaceId.slice(0, 8)}</Text>
+            <InfoLine label="Name" value={vendorName} />
+            <InfoLine label="Address" value={vendor?.address} />
+            <InfoLine label="Email" value={vendor?.email} />
+            <InfoLine label="Website" value={vendor?.website} />
           </View>
         </View>
 
@@ -300,7 +322,7 @@ export function ProposalPDFDocument({ proposal }: { proposal: ProposalResponse }
         ))}
 
         <Text style={styles.pageFooter} render={({ pageNumber, totalPages }) => (
-          `Bid proposal template — Page ${pageNumber} of ${totalPages}`
+          `${vendorName ? `${vendorName} — ` : ""}Bid Proposal — Page ${pageNumber} of ${totalPages}`
         )} fixed />
       </Page>
     </Document>

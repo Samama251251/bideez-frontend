@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getStatus, listWorkspaces } from "@/lib/api/workspaces"
 import { ExtractionView } from "@/components/workspaces/extraction-view"
+import type { ProposalVendor } from "@/lib/api/types"
 
 export default async function WorkspaceDetailPage({
   params,
@@ -38,6 +39,14 @@ export default async function WorkspaceDetailPage({
   let userId = ""
   let userRole: "owner" | "employee" = "employee"
   let companyId = ""
+  // The responding company's real details for the exported PDF's Contractor block.
+  // Email falls back to the signed-in user; the rest come from the enriched company profile.
+  const vendor: ProposalVendor = {
+    name: null,
+    address: null,
+    website: null,
+    email: user.email ?? null,
+  }
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile?email=${encodeURIComponent(user.email!)}`,
@@ -48,6 +57,12 @@ export default async function WorkspaceDetailPage({
       userId = profile.user?.id ?? ""
       userRole = profile.user?.role === "owner" ? "owner" : "employee"
       companyId = profile.user?.companyId ?? ""
+      const company = profile.company
+      if (company) {
+        vendor.name = company.name ?? null
+        vendor.address = company.location ?? null
+        vendor.website = company.domain ?? null
+      }
     }
   } catch {}
 
@@ -62,6 +77,7 @@ export default async function WorkspaceDetailPage({
         userId={userId}
         userRole={userRole}
         companyId={companyId}
+        vendor={vendor}
       />
     </div>
   )
