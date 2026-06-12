@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { getAccessToken } from "@/lib/api/browser"
 import {
   approveCandidate,
+  getGmailStatus,
   listCandidates,
   rejectCandidate,
   runResearchAgent,
@@ -29,11 +30,16 @@ import {
 import type { RfpCandidate, RfpCandidateStatus } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
 
-const TABS: { label: string; value: RfpCandidateStatus }[] = [
+type SourceTab = "email" | "web"
+
+const STATUS_TABS: { label: string; value: RfpCandidateStatus }[] = [
   { label: "Pending", value: "pending" },
   { label: "Approved", value: "approved" },
   { label: "Rejected", value: "rejected" },
 ]
+
+const EMAIL_SOURCES = new Set(["gmail", "manual"])
+const WEB_SOURCES = new Set(["research_agent"])
 
 const SOURCE_LABELS: Record<string, string> = {
   gmail: "Gmail",
@@ -55,8 +61,11 @@ function fitBarColor(score: number): string {
 
 function formatDeadline(iso: string | null): string {
   if (!iso) return ""
-  const d = new Date(iso)
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }
 
 function timeAgo(iso: string): string {
@@ -71,27 +80,33 @@ function timeAgo(iso: string): string {
 
 export function ReviewQueue() {
   const router = useRouter()
-  const [tab, setTab] = React.useState<RfpCandidateStatus>("pending")
+  const [sourceTab, setSourceTab] = React.useState<SourceTab>("email")
+  const [statusTab, setStatusTab] = React.useState<RfpCandidateStatus>("pending")
   const [candidates, setCandidates] = React.useState<RfpCandidate[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [acting, setActing] = React.useState<Record<string, "approving" | "rejecting">>({})
   const [searching, setSearching] = React.useState(false)
-
-  // Manual refresh trigger: incrementing this causes the effect to re-run.
   const [refreshTick, setRefreshTick] = React.useState(0)
+  const [gmailConnected, setGmailConnected] = React.useState(false)
 
-  // Load on tab change or manual refresh
+  React.useEffect(() => {
+    getAccessToken()
+      .then((token) => getGmailStatus(token))
+      .then((s) => setGmailConnected(s.connected && s.status === "active"))
+      .catch(() => {})
+  }, [])
+
   React.useEffect(() => {
     let cancelled = false
     const run = async () => {
-      await Promise.resolve() // defer setState out of synchronous effect body
+      await Promise.resolve()
       if (cancelled) return
       setLoading(true)
       setError(null)
       try {
         const token = await getAccessToken()
-        const result = await listCandidates(tab, token)
+        const result = await listCandidates(statusTab, token)
         if (!cancelled) setCandidates(result.candidates)
       } catch (err) {
         if (!cancelled)
@@ -104,25 +119,26 @@ export function ReviewQueue() {
     return () => {
       cancelled = true
     }
-  }, [tab, refreshTick])
+  }, [statusTab, refreshTick])
 
-  // Poll every 30s on pending tab only (silent — no spinner)
   React.useEffect(() => {
-    if (tab !== "pending") return
+    if (statusTab !== "pending") return
     const id = setInterval(() => {
-      let cancelled = false
       const run = async () => {
         const token = await getAccessToken()
         const result = await listCandidates("pending", token)
-        if (!cancelled) setCandidates(result.candidates)
+        setCandidates(result.candidates)
       }
       run().catch(() => {})
-      return () => {
-        cancelled = true
-      }
     }, 30_000)
     return () => clearInterval(id)
-  }, [tab])
+  }, [statusTab])
+
+  const filteredCandidates = candidates
+    .filter((c) =>
+      sourceTab === "email" ? EMAIL_SOURCES.has(c.source) : WEB_SOURCES.has(c.source)
+    )
+    .sort((a, b) => Number(b.domainFitScore) - Number(a.domainFitScore))
 
   async function handleFindRfps() {
     if (searching) return
@@ -136,23 +152,21 @@ export function ReviewQueue() {
         toast.success(
           `Found ${result.candidatesCreated} new ${result.candidatesCreated === 1 ? "opportunity" : "opportunities"}`
         )
-        // Switch to pending and reload if not already there
-        if (tab === "pending") {
+        if (statusTab === "pending") {
           setRefreshTick((n) => n + 1)
         } else {
-          setTab("pending")
+          setStatusTab("pending")
         }
       } else if (result.duplicatesSkipped > 0) {
         toast.info("No new RFPs found — all results already in your queue.")
       } else {
         toast.info(
-          "No matching RFPs found on this search. Try updating your capabilities or company description."
+          "No matching RFPs found. Try updating your capabilities or company description."
         )
       }
     } catch (err) {
       toast.dismiss(toastId)
-      const msg = err instanceof Error ? err.message : "Research agent run failed"
-      toast.error(msg)
+      toast.error(err instanceof Error ? err.message : "Research agent run failed")
     } finally {
       setSearching(false)
     }
@@ -196,16 +210,42 @@ export function ReviewQueue() {
 
   return (
     <div>
-      {/* Toolbar: tabs + Find RFPs button */}
+      {/* Source tabs (top-level) */}
+      <div className="mb-5 border-b border-border">
+        <div className="flex">
+          {(
+            [
+              { value: "email" as SourceTab, label: "Email Intake", icon: Mail },
+              { value: "web" as SourceTab, label: "Web Discovery", icon: Globe },
+            ] as const
+          ).map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              onClick={() => setSourceTab(value)}
+              className={cn(
+                "-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
+                sourceTab === value
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Icon className="size-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Status tabs + actions row */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/20 p-1 w-fit">
-          {TABS.map((t) => (
+        <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/20 p-1">
+          {STATUS_TABS.map((t) => (
             <button
               key={t.value}
-              onClick={() => setTab(t.value)}
+              onClick={() => setStatusTab(t.value)}
               className={cn(
                 "rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
-                tab === t.value
+                statusTab === t.value
                   ? "bg-background shadow-sm text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
@@ -215,61 +255,102 @@ export function ReviewQueue() {
           ))}
           <button
             onClick={() => setRefreshTick((n) => n + 1)}
-            className="ml-2 rounded-lg p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+            className="ml-2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Refresh"
           >
             <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
           </button>
         </div>
 
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleFindRfps}
-          disabled={searching}
-          className="gap-1.5"
-        >
-          {searching ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <Search className="size-3.5" />
-          )}
-          {searching ? "Searching…" : "Find RFPs for us"}
-        </Button>
+        {sourceTab === "web" && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleFindRfps}
+            disabled={searching}
+            className="gap-1.5"
+          >
+            {searching ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Search className="size-3.5" />
+            )}
+            {searching ? "Searching…" : "Find RFPs for us"}
+          </Button>
+        )}
       </div>
 
+      {/* Content */}
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
           <Loader2 className="size-5 animate-spin" />
-          <span className="text-sm">Loading candidates…</span>
+          <span className="text-sm">Loading…</span>
         </div>
       ) : error ? (
         <div className="flex items-center gap-2 rounded-xl border border-gap/30 bg-gap/10 px-4 py-3 text-sm text-gap">
           <AlertCircle className="size-4 shrink-0" />
           {error}
         </div>
-      ) : candidates.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-muted/20 p-10 text-center">
-          <Mail className="mx-auto size-9 text-muted-foreground/40 mb-3" />
-          <p className="text-sm text-muted-foreground">
-            {tab === "pending"
-              ? 'No pending candidates. Forward an RFP email, connect Gmail, or click "Find RFPs for us" to search the web.'
-              : `No ${tab} candidates.`}
-          </p>
-        </div>
+      ) : filteredCandidates.length === 0 ? (
+        <EmptyState sourceTab={sourceTab} statusTab={statusTab} gmailConnected={gmailConnected} />
       ) : (
         <div className="space-y-3">
-          {candidates.map((c) => (
+          {filteredCandidates.map((c) => (
             <CandidateCard
               key={c.id}
               candidate={c}
               acting={acting[c.id]}
-              onApprove={tab === "pending" ? () => handleApprove(c.id) : undefined}
-              onReject={tab === "pending" ? () => handleReject(c.id) : undefined}
+              onApprove={statusTab === "pending" ? () => handleApprove(c.id) : undefined}
+              onReject={statusTab === "pending" ? () => handleReject(c.id) : undefined}
             />
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function EmptyState({
+  sourceTab,
+  statusTab,
+  gmailConnected,
+}: {
+  sourceTab: SourceTab
+  statusTab: RfpCandidateStatus
+  gmailConnected: boolean
+}) {
+  const Icon = sourceTab === "email" ? Mail : Globe
+
+  let message: React.ReactNode
+  if (statusTab === "pending") {
+    message =
+      sourceTab === "email" ? (
+        gmailConnected ? (
+          <>No pending email RFPs. Forward an RFP to your intake address.</>
+        ) : (
+          <>
+            No pending email RFPs. Forward an RFP to your intake address or{" "}
+            <a href="/settings" className="text-primary hover:underline">
+              connect Gmail
+            </a>
+            .
+          </>
+        )
+      ) : (
+        <>
+          No web-discovered RFPs yet. Click{" "}
+          <span className="font-medium text-foreground">"Find RFPs for us"</span> to search
+          the web.
+        </>
+      )
+  } else {
+    message = `No ${statusTab} opportunities from ${sourceTab === "email" ? "email" : "web discovery"}.`
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-muted/10 p-10 text-center">
+      <Icon className="mx-auto mb-3 size-8 text-muted-foreground/30" />
+      <p className="mx-auto max-w-sm text-sm text-muted-foreground">{message}</p>
     </div>
   )
 }
@@ -290,15 +371,14 @@ function CandidateCard({
   const isWebSearch = c.source === "research_agent"
 
   return (
-    <div className="rounded-xl border border-border bg-muted/20 p-5 transition-colors hover:bg-muted/30">
-      {/* Header row */}
+    <div className="rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/20">
+      {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            {/* Source badge */}
+          <div className="mb-1 flex flex-wrap items-center gap-2">
             <span
               className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide",
                 isWebSearch
                   ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-border bg-muted text-muted-foreground"
@@ -331,7 +411,7 @@ function CandidateCard({
         {/* Fit score */}
         <div
           className={cn(
-            "shrink-0 rounded-lg px-3 py-1.5 text-center min-w-[3.5rem]",
+            "min-w-[3.5rem] shrink-0 rounded-lg px-3 py-1.5 text-center",
             fitColor(score)
           )}
         >
@@ -340,18 +420,18 @@ function CandidateCard({
         </div>
       </div>
 
-      {/* Fit bar — prominent for web search candidates */}
+      {/* Fit bar — web search only */}
       {isWebSearch && (
         <div className="mt-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wide">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
               Domain fit
             </span>
             <span className={cn("text-[11px] font-semibold", fitColor(score).split(" ")[0])}>
               {score}%
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
               className={cn("h-full rounded-full transition-all", fitBarColor(score))}
               style={{ width: `${Math.min(score, 100)}%` }}
@@ -360,7 +440,7 @@ function CandidateCard({
         </div>
       )}
 
-      {/* Meta row */}
+      {/* Meta */}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {c.deadline && (
           <span className="flex items-center gap-1">
@@ -384,7 +464,6 @@ function CandidateCard({
           <FileText className="size-3" />
           {timeAgo(c.createdAt)}
         </span>
-        {/* View Source link for web-search candidates */}
         {isWebSearch && c.sourceRef?.url && (
           <a
             href={c.sourceRef.url}
@@ -398,27 +477,25 @@ function CandidateCard({
         )}
       </div>
 
-      {/* Classification reason — shown as subtitle for web-search candidates */}
+      {/* Classification reason — inline italic for web, expandable for email */}
       {isWebSearch && c.classificationReason && (
-        <p className="mt-2 text-xs text-muted-foreground italic leading-relaxed">
+        <p className="mt-2 text-xs italic leading-relaxed text-muted-foreground">
           {c.classificationReason}
         </p>
       )}
 
-      {/* Overview */}
       {c.projectOverview && (
-        <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-3">
+        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
           {c.projectOverview}
         </p>
       )}
 
-      {/* Classification reason expandable for non-web-search */}
       {!isWebSearch && c.classificationReason && (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground select-none">
+          <summary className="cursor-pointer select-none text-xs text-muted-foreground hover:text-foreground">
             Why flagged as RFP
           </summary>
-          <p className="mt-1 text-xs text-muted-foreground leading-relaxed pl-2 border-l border-border">
+          <p className="mt-1 border-l border-border pl-2 text-xs leading-relaxed text-muted-foreground">
             {c.classificationReason}
           </p>
         </details>

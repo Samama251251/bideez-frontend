@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Loader2, Sparkles, AlertCircle } from "lucide-react"
+import { Loader2, Sparkles, AlertCircle, Pencil, X, Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 type Competitor = {
   name: string
@@ -22,6 +23,7 @@ type Company = {
 }
 
 const POLL_INTERVAL_MS = 4000
+const OVERVIEW_COLLAPSE_LENGTH = 280
 
 export function CompanyEnrichment({
   email,
@@ -31,6 +33,11 @@ export function CompanyEnrichment({
   initialCompany: Company
 }) {
   const [company, setCompany] = React.useState<Company>(initialCompany)
+  const [expanded, setExpanded] = React.useState(false)
+  const [editing, setEditing] = React.useState(false)
+  const [draft, setDraft] = React.useState(company.overview ?? "")
+  const [saving, setSaving] = React.useState(false)
+  const [saveError, setSaveError] = React.useState<string | null>(null)
 
   const status = company.enrichmentStatus
 
@@ -77,25 +84,131 @@ export function CompanyEnrichment({
 
   if (status !== "complete") return null
 
+  const overview = company.overview ?? ""
+  const isTruncatable = overview.length > OVERVIEW_COLLAPSE_LENGTH
+  const displayedOverview =
+    !editing && isTruncatable && !expanded
+      ? overview.slice(0, OVERVIEW_COLLAPSE_LENGTH).trimEnd() + "…"
+      : overview
+
+  async function handleSave() {
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/companies/${company.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ overview: draft }),
+        }
+      )
+      if (!res.ok) throw new Error("Failed to save")
+      setCompany((prev) => ({ ...prev, overview: draft }))
+      setEditing(false)
+    } catch {
+      setSaveError("Couldn't save — try again.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleCancel() {
+    setDraft(company.overview ?? "")
+    setSaveError(null)
+    setEditing(false)
+  }
+
   return (
     <div className="mt-6 space-y-4 rounded-xl border border-border bg-muted/30 p-6">
-      <div className="flex items-center gap-2">
-        <Sparkles className="size-4 text-primary" />
-        <h3 className="font-display text-sm font-semibold tracking-tight">
-          Company research
-        </h3>
-        {company.industry && <Badge variant="secondary">{company.industry}</Badge>}
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="size-4 text-primary" />
+          <h3 className="font-display text-sm font-semibold tracking-tight">Company research</h3>
+          {company.industry && <Badge variant="secondary">{company.industry}</Badge>}
+        </div>
+
+        {!editing ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              setDraft(company.overview ?? "")
+              setEditing(true)
+              setExpanded(true)
+            }}
+          >
+            <Pencil className="size-3" />
+            Edit
+          </Button>
+        ) : (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              onClick={handleCancel}
+              disabled={saving}
+            >
+              <X className="size-3" />
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="h-7 gap-1.5 px-3 text-xs"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
+              Save
+            </Button>
+          </div>
+        )}
       </div>
 
-      {company.overview && (
-        <p className="text-sm leading-relaxed text-muted-foreground">{company.overview}</p>
+      {/* Overview */}
+      {overview && (
+        <div className="space-y-1">
+          {editing ? (
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={10}
+              className="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm leading-relaxed text-foreground outline-none focus:ring-1 focus:ring-ring"
+            />
+          ) : (
+            <p className="text-sm leading-relaxed text-muted-foreground">{displayedOverview}</p>
+          )}
+
+          {!editing && isTruncatable && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              {expanded ? (
+                <>
+                  <ChevronUp className="size-3" />
+                  Collapse
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="size-3" />
+                  See full research
+                </>
+              )}
+            </button>
+          )}
+
+          {saveError && <p className="text-xs text-destructive">{saveError}</p>}
+        </div>
       )}
 
+      {/* Competitors */}
       {company.competitors && company.competitors.length > 0 && (
         <div>
-          <p className="font-mono text-[11px] tracking-wide text-muted-foreground">
-            COMPETITORS
-          </p>
+          <p className="font-mono text-[11px] tracking-wide text-muted-foreground">COMPETITORS</p>
           <ul className="mt-2 space-y-2">
             {company.competitors.map((competitor) => (
               <li key={competitor.name} className="text-sm">

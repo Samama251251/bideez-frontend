@@ -11,13 +11,16 @@ import {
   Settings2,
   LogOut,
   ClipboardCheck,
+  Sun,
+  Moon,
 } from "lucide-react"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/workspaces", icon: FileText, label: "Workspaces" },
-  { href: "/review", icon: Inbox, label: "Review Queue" },
+  { href: "/review", icon: Inbox, label: "Opportunities" },
   { href: "/my-reviews", icon: ClipboardCheck, label: "My Reviews" },
   { href: "/library", icon: Library, label: "Company Library" },
   { href: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
@@ -31,6 +34,7 @@ interface SidebarProps {
 
 export function Sidebar({ userName, companyName }: SidebarProps) {
   const pathname = usePathname()
+  const { resolvedTheme, setTheme } = useTheme()
   const initials = userName
     .split(" ")
     .map((n) => n[0] ?? "")
@@ -115,15 +119,24 @@ export function Sidebar({ userName, companyName }: SidebarProps) {
             )}
           </div>
         </div>
-        <form action="/auth/signout" method="post">
+        <div className="flex items-center gap-1">
           <button
-            type="submit"
-            className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="flex flex-1 items-center gap-2 rounded-md px-3 py-1.5 text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
           >
-            <LogOut className="size-3.5" />
-            Sign out
+            {resolvedTheme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+            {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
           </button>
-        </form>
+          <form action="/auth/signout" method="post">
+            <button
+              type="submit"
+              title="Sign out"
+              className="flex items-center rounded-md p-1.5 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            >
+              <LogOut className="size-3.5" />
+            </button>
+          </form>
+        </div>
       </div>
     </aside>
   )

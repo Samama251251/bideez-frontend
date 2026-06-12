@@ -121,6 +121,22 @@ export interface AnalysisRequirement {
   matchConfidence: number | null // 0–100, or null if never scored
   gapSeverity: GapSeverity
   evidence: AnalysisEvidence[]
+  userOverride?: boolean
+  userNote?: string | null
+}
+
+export interface OverrideRequirementInput {
+  isMatched: boolean
+  gapSeverity?: GapSeverity
+  note?: string | null
+}
+
+export interface OverrideRequirementResponse {
+  id: string
+  isMatched: boolean
+  gapSeverity: GapSeverity
+  userOverride: boolean
+  userNote: string | null
 }
 
 export interface WinProbabilitySubScore {
