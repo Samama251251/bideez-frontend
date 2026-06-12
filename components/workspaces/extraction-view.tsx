@@ -55,6 +55,8 @@ export function ExtractionView({
   initialStatus,
   initialError,
   initialGoDecision,
+  userId,
+  userRole,
 }: {
   workspaceId: string
   title: string
@@ -62,6 +64,9 @@ export function ExtractionView({
   initialError: string | null
   /** The recorded GO/NO-GO decision — used to determine which retry path to show on failure. */
   initialGoDecision?: string | null
+  /** Current user — passed through to BidProposalView for role-aware SME review. */
+  userId: string
+  userRole: "owner" | "employee"
 }) {
   const router = useRouter()
   const [status, setStatus] = React.useState<WorkspaceStatus>(initialStatus)
@@ -188,7 +193,7 @@ export function ExtractionView({
   async function handleRetryCreate() {
     try {
       const token = await getAccessToken()
-      await retryCreateWorkspace(workspaceId, token)
+      await retryCreateWorkspace(workspaceId, false, token)
       setError(null)
       setStatus("drafting")
     } catch (err) {
@@ -272,7 +277,7 @@ export function ExtractionView({
 
           {/* CREATE phase — proposal ready for review / finalized */}
           {(status === "review" || status === "finalized") && (
-            <BidProposalView workspaceId={workspaceId} />
+            <BidProposalView workspaceId={workspaceId} userId={userId} userRole={userRole} />
           )}
         </>
       )}

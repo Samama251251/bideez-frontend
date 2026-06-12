@@ -35,6 +35,20 @@ export default async function WorkspaceDetailPage({
     title = workspaces.find((w) => w.id === id)?.title ?? title
   } catch {}
 
+  let userId = ""
+  let userRole: "owner" | "employee" = "employee"
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile?email=${encodeURIComponent(user.email!)}`,
+      { cache: "no-store" }
+    )
+    if (res.ok) {
+      const profile = await res.json()
+      userId = profile.user?.id ?? ""
+      userRole = profile.user?.role === "owner" ? "owner" : "employee"
+    }
+  } catch {}
+
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-8">
       <ExtractionView
@@ -43,6 +57,8 @@ export default async function WorkspaceDetailPage({
         initialStatus={status.status}
         initialError={status.error}
         initialGoDecision={status.goDecision}
+        userId={userId}
+        userRole={userRole}
       />
     </div>
   )

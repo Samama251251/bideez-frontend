@@ -10,6 +10,7 @@ import {
   BookOpen,
   Settings2,
   LogOut,
+  ClipboardCheck,
   Sun,
   Moon,
 } from "lucide-react"
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/workspaces", icon: FileText, label: "Workspaces" },
   { href: "/review", icon: Inbox, label: "Opportunities" },
+  { href: "/my-reviews", icon: ClipboardCheck, label: "My Reviews" },
   { href: "/library", icon: Library, label: "Company Library" },
   { href: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
 ]

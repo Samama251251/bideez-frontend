@@ -14,55 +14,20 @@ import type {
   GoDecision,
   OverrideRequirementInput,
   OverrideRequirementResponse,
+  RecordOutcomeInput,
   RequirementsResponse,
+  SectionReviewer,
+  SendReviewsResponse,
   StatusResponse,
   UploadUrlResponse,
+  WorkingMemory,
   WorkspaceStatus,
   WorkspaceSummary,
 } from "./types"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ""
+import { ApiError, request } from "./request"
 
-export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string
-  ) {
-    super(message)
-    this.name = "ApiError"
-  }
-}
-
-async function request<T>(
-  path: string,
-  init: RequestInit = {},
-  token?: string
-): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  })
-
-  if (!res.ok) {
-    let message = res.statusText
-    try {
-      const body = await res.json()
-      if (body?.error) message = body.error
-    } catch {
-      // non-JSON error body — keep statusText
-    }
-    throw new ApiError(res.status, message)
-  }
-
-  // 202 / 204 responses may have an empty body.
-  const text = await res.text()
-  return (text ? JSON.parse(text) : undefined) as T
-}
+export { ApiError }
 
 export function listWorkspaces(token?: string) {
   return request<{ workspaces: WorkspaceSummary[] }>("/api/workspaces", {}, token)
@@ -164,16 +129,39 @@ export function getProposal(workspaceId: string, token?: string) {
   )
 }
 
-/** Save a human edit or approval to a single section. */
+/** Save a human edit, approval, or reviewer-done to a single section. */
 export function updateProposalSection(
   workspaceId: string,
   sectionId: string,
-  body: { humanContent?: string | null; approved?: boolean },
+  body: { humanContent?: string | null; approved?: boolean; markDone?: boolean; baseUpdatedAt?: string },
   token?: string
 ) {
   return request<import("./types").UpdateSectionResponse>(
     `/api/workspaces/${workspaceId}/proposal/sections/${sectionId}`,
     { method: "PATCH", body: JSON.stringify(body) },
+    token
+  )
+}
+
+/** Owner-only: override the reviewer set for a section. */
+export function setSectionReviewers(
+  workspaceId: string,
+  sectionId: string,
+  userIds: string[],
+  token?: string
+) {
+  return request<{ reviewers: SectionReviewer[] }>(
+    `/api/workspaces/${workspaceId}/proposal/sections/${sectionId}/reviewers`,
+    { method: "PATCH", body: JSON.stringify({ userIds }) },
+    token
+  )
+}
+
+/** Owner-only: email every assigned reviewer a summary of their sections. */
+export function sendReviews(workspaceId: string, token?: string) {
+  return request<SendReviewsResponse>(
+    `/api/workspaces/${workspaceId}/proposal/send-reviews`,
+    { method: "POST" },
     token
   )
 }
@@ -187,10 +175,29 @@ export function finalizeProposal(workspaceId: string, token?: string) {
   )
 }
 
+/** Owner-only: record the win/loss outcome of a finalized bid. */
+export function recordOutcome(workspaceId: string, body: RecordOutcomeInput, token?: string) {
+  return request<{ outcome: RecordOutcomeInput["outcome"] }>(
+    `/api/workspaces/${workspaceId}/outcome`,
+    { method: "POST", body: JSON.stringify(body) },
+    token
+  )
+}
+
+/** The learnings (working memories) produced by this workspace. */
+export function getLearnings(workspaceId: string, token?: string) {
+  return request<{ learnings: WorkingMemory[] }>(
+    `/api/workspaces/${workspaceId}/learnings`,
+    {},
+    token
+  )
+}
+
 /** Re-run a failed CREATE phase (draft generation). Requires goDecision === "go". */
-export function retryCreateWorkspace(workspaceId: string, token?: string) {
+export function retryCreateWorkspace(workspaceId: string, confirm?: boolean, token?: string) {
+  const qs = confirm ? "?confirm=true" : ""
   return request<{ status: WorkspaceStatus }>(
-    `/api/workspaces/${workspaceId}/retry-create`,
+    `/api/workspaces/${workspaceId}/retry-create${qs}`,
     { method: "POST" },
     token
   )
