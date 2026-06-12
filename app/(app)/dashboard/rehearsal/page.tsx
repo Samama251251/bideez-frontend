@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import Vapi from "@vapi-ai/web"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -109,9 +110,24 @@ export default function RehearsalPage() {
   const vapiRef = useRef<Vapi | null>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
 
-  /* -- Workspace config (hardcoded for testing — will come from URL) ----- */
-  const [workspaceId, setWorkspaceId] = useState("")
-  const [companyId, setCompanyId] = useState("")
+  /* -- URL params ------------------------------------------------------- */
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const paramWorkspaceId = searchParams.get("workspaceId")
+  const paramCompanyId = searchParams.get("companyId")
+  const paramTitle = searchParams.get("title")
+
+  const hasParams = !!paramWorkspaceId && !!paramCompanyId
+
+  const [workspaceId, setWorkspaceId] = useState(paramWorkspaceId ?? "")
+  const [companyId, setCompanyId] = useState(paramCompanyId ?? "")
+
+  /* -- Redirect if no params -------------------------------------------- */
+  useEffect(() => {
+    if (!hasParams) {
+      router.replace("/dashboard")
+    }
+  }, [hasParams, router])
 
   /* -- Cleanup ---------------------------------------------------------- */
   useEffect(() => {
@@ -348,13 +364,23 @@ export default function RehearsalPage() {
       <div className="mx-auto w-full max-w-6xl py-12 animate-rise">
         {/* Header */}
         <div className="mb-10 flex flex-col gap-2">
-          <a
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground w-fit"
-          >
-            <ArrowLeft className="size-4" />
-            Back to Dashboard
-          </a>
+          {hasParams ? (
+            <a
+              href={`/workspaces/${workspaceId}`}
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground w-fit"
+            >
+              <ArrowLeft className="size-4" />
+              Back to Workspace
+            </a>
+          ) : (
+            <a
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground w-fit"
+            >
+              <ArrowLeft className="size-4" />
+              Back to Dashboard
+            </a>
+          )}
           <div className="flex items-center gap-3 mt-4">
             <Badge
               variant="outline"
@@ -367,7 +393,9 @@ export default function RehearsalPage() {
             </span>
           </div>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Oral Interview Rehearsal
+            {hasParams && paramTitle
+              ? `Rehearsal: ${paramTitle}`
+              : "Oral Interview Rehearsal"}
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
             Practice your defense against the buyer panel&apos;s toughest questions.
@@ -377,7 +405,34 @@ export default function RehearsalPage() {
         {/* ============================================================== */}
         {/*  IDLE STATE — Setup form                                       */}
         {/* ============================================================== */}
-        {callStatus === "idle" && (
+        {callStatus === "idle" && hasParams && (
+          <div className="glass rounded-3xl p-8 max-w-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex size-10 items-center justify-center rounded-2xl border border-border/60 bg-background text-primary">
+                <Shield className="size-4.5" strokeWidth={1.75} />
+              </div>
+              <h3 className="font-display text-xl font-medium">Ready to Rehearse</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+              The AI buyer panel will call you and ask{" "}
+              <span className="font-medium text-foreground">6–8 hard-hitting questions</span>{" "}
+              drawn from your proposal&apos;s gaps, evaluation criteria, and weak sections.
+              After the call, each answer is scored on clarity, directness, evidence,
+              and compliance.
+            </p>
+            <Button
+              onClick={startRehearsal}
+              disabled={!workspaceId || !companyId}
+              size="lg"
+              className="w-full h-12 text-[15px]"
+            >
+              <Phone className="mr-2 h-4 w-4" />
+              Start Rehearsal Call
+            </Button>
+          </div>
+        )}
+
+        {callStatus === "idle" && !hasParams && (
           <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
             {/* Setup card */}
             <div className="glass rounded-3xl p-8">
@@ -858,8 +913,15 @@ export default function RehearsalPage() {
               </div>
             </div>
 
-            {/* Restart button */}
-            <div className="flex justify-center pt-8">
+            {/* Post-scoring actions */}
+            <div className="flex items-center justify-center gap-4 pt-8">
+              <a
+                href={`/workspaces/${workspaceId}`}
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ArrowLeft className="size-4" />
+                Back to Workspace
+              </a>
               <Button
                 onClick={() => {
                   setCallStatus("idle")
@@ -872,7 +934,7 @@ export default function RehearsalPage() {
                 className="h-12 px-8 text-[15px]"
               >
                 <Phone className="mr-2 h-4 w-4" />
-                Start New Rehearsal
+                Rehearse Again
               </Button>
             </div>
           </div>

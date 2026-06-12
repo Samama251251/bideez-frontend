@@ -12,6 +12,8 @@ import {
   FileText,
   Loader2,
   Mail,
+  Mic,
+  Phone,
   Save,
   Shield,
   Trophy,
@@ -39,6 +41,7 @@ import {
   updateProposalSection,
 } from "@/lib/api/workspaces"
 import { ProposalPDFDocument } from "@/components/workspaces/proposal-pdf"
+import { getLatestRehearsalScore } from "@/lib/api/rehearsal"
 import type {
   AssignableMember,
   BidOutcome,
@@ -75,10 +78,12 @@ export function BidProposalView({
   workspaceId,
   userId,
   userRole,
+  companyId,
 }: {
   workspaceId: string
   userId: string
   userRole: "owner" | "employee"
+  companyId: string
 }) {
   const isOwner = userRole === "owner"
 
@@ -96,6 +101,12 @@ export function BidProposalView({
     setProposal(data)
     return data
   }, [workspaceId])
+
+  const [rehearsalScore, setRehearsalScore] = React.useState<number | null>(null)
+
+  React.useEffect(() => {
+    getLatestRehearsalScore(workspaceId).then(setRehearsalScore)
+  }, [workspaceId, proposal?.status])
 
   // Load proposal sections on mount.
   React.useEffect(() => {
@@ -355,6 +366,15 @@ export function BidProposalView({
             />
           ))}
         </div>
+      )}
+
+      {/* ---- Rehearse CTA ------------------------------------------------ */}
+      {isFinalized && (
+        <RehearseCard
+          workspaceId={workspaceId}
+          companyId={companyId}
+          rehearsalScore={rehearsalScore}
+        />
       )}
 
       {/* ---- Finalized: outcome + lessons ------------------------------ */}
@@ -916,6 +936,74 @@ function LessonsPanel({ workspaceId }: { workspaceId: string }) {
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------
+ * Stat card
+ * ------------------------------------------------------------------------- */
+
+function RehearseCard({
+  workspaceId,
+  companyId,
+  rehearsalScore,
+}: {
+  workspaceId: string
+  companyId: string
+  rehearsalScore: number | null
+}) {
+  const href = `/dashboard/rehearsal?workspaceId=${encodeURIComponent(workspaceId)}&companyId=${encodeURIComponent(companyId)}`
+
+  if (rehearsalScore !== null) {
+    return (
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-go/30 bg-go/5 p-5">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-go/20 bg-go/10">
+            <Mic className="size-4.5 text-go" />
+          </div>
+          <div>
+            <p className="font-display text-sm font-semibold tracking-tight">
+              Last Rehearsal: {rehearsalScore}%
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Buyer call readiness score
+            </p>
+          </div>
+        </div>
+        <a
+          href={href}
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+        >
+          <Phone className="size-4" />
+          Rehearse Again
+        </a>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-muted/20 p-5">
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background text-primary">
+          <Mic className="size-4.5" />
+        </div>
+        <div>
+          <p className="font-display text-sm font-semibold tracking-tight">
+            Ready for the buyer call?
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Rehearse with our AI buyer panel before submission
+          </p>
+        </div>
+      </div>
+      <a
+        href={href}
+        className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+      >
+        <Phone className="size-4" />
+        Start Rehearsal
+      </a>
     </div>
   )
 }

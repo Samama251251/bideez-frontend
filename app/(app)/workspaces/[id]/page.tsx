@@ -37,6 +37,7 @@ export default async function WorkspaceDetailPage({
 
   let userId = ""
   let userRole: "owner" | "employee" = "employee"
+  let companyId = ""
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile?email=${encodeURIComponent(user.email!)}`,
@@ -46,6 +47,7 @@ export default async function WorkspaceDetailPage({
       const profile = await res.json()
       userId = profile.user?.id ?? ""
       userRole = profile.user?.role === "owner" ? "owner" : "employee"
+      companyId = profile.user?.companyId ?? ""
     }
   } catch {}
 
@@ -59,6 +61,7 @@ export default async function WorkspaceDetailPage({
         initialGoDecision={status.goDecision}
         userId={userId}
         userRole={userRole}
+        companyId={companyId}
       />
     </div>
   )
