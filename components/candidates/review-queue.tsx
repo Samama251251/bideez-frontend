@@ -125,9 +125,11 @@ export function ReviewQueue() {
     return () => clearInterval(id)
   }, [statusTab])
 
-  const filteredCandidates = candidates.filter((c) =>
-    sourceTab === "email" ? EMAIL_SOURCES.has(c.source) : WEB_SOURCES.has(c.source)
-  )
+  const filteredCandidates = candidates
+    .filter((c) =>
+      sourceTab === "email" ? EMAIL_SOURCES.has(c.source) : WEB_SOURCES.has(c.source)
+    )
+    .sort((a, b) => Number(b.domainFitScore) - Number(a.domainFitScore))
 
   async function handleFindRfps() {
     if (searching) return
