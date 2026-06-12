@@ -7,7 +7,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer"
 import type { ProposalResponse, ProposalSection } from "@/lib/api/types"
 
@@ -19,172 +18,220 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     fontSize: 10,
-    lineHeight: 1.6,
-    color: "#1a1a1a",
-    paddingTop: 56,
-    paddingBottom: 56,
-    paddingHorizontal: 60,
+    lineHeight: 1.5,
+    color: "#000000",
+    paddingTop: 40,
+    paddingBottom: 40,
+    paddingHorizontal: 50,
   },
-
-  // Cover page
-  coverPage: {
-    fontFamily: "Helvetica",
-    fontSize: 10,
-    color: "#1a1a1a",
-    paddingTop: 120,
-    paddingBottom: 56,
-    paddingHorizontal: 60,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-  },
-  coverBadge: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    letterSpacing: 2,
-    color: "#6b7280",
-    textTransform: "uppercase",
-    marginBottom: 16,
-  },
-  coverTitle: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 28,
-    color: "#0f172a",
-    lineHeight: 1.3,
-    marginBottom: 8,
-  },
-  coverSubtitle: {
-    fontSize: 13,
-    color: "#475569",
-    marginBottom: 40,
-  },
-  coverDivider: {
-    borderBottomWidth: 2,
-    borderBottomColor: "#e2e8f0",
-    marginBottom: 32,
-  },
-  coverMetaRow: {
-    flexDirection: "row",
-    gap: 32,
-    marginBottom: 8,
-  },
-  coverMetaLabel: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: "#6b7280",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 2,
-  },
-  coverMetaValue: {
-    fontSize: 11,
-    color: "#0f172a",
-  },
-  coverFooter: {
-    position: "absolute",
-    bottom: 48,
-    left: 60,
-    right: 60,
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-    paddingTop: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  coverFooterText: {
-    fontSize: 8,
-    color: "#94a3b8",
-  },
-
-  // TOC
-  tocTitle: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 14,
-    color: "#0f172a",
+  header: {
+    fontSize: 24,
     marginBottom: 20,
+    fontFamily: "Helvetica",
   },
-  tocRow: {
+  
+  // Columns for Client / Contractor
+  columnsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    marginBottom: 30,
   },
-  tocLabel: {
-    fontSize: 10,
-    color: "#334155",
+  column: {
+    width: "45%",
   },
-  tocDots: {
-    flex: 1,
-    marginHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomStyle: "dotted",
-    borderBottomColor: "#cbd5e1",
-    marginBottom: 3,
-  },
-  tocPage: {
-    fontSize: 9,
-    color: "#94a3b8",
-  },
-
-  // Section pages
-  sectionHeader: {
-    marginBottom: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: "#e2e8f0",
-  },
-  sectionLabel: {
-    fontSize: 8,
+  colHeading: {
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 1.5,
-    color: "#6b7280",
-    textTransform: "uppercase",
+    fontSize: 11,
+    marginBottom: 10,
+  },
+  colText: {
     marginBottom: 4,
   },
+  
+  // Sections
   sectionTitle: {
+    fontSize: 16,
     fontFamily: "Helvetica-Bold",
-    fontSize: 18,
-    color: "#0f172a",
-    lineHeight: 1.2,
+    marginBottom: 10,
+    marginTop: 15,
   },
-  sectionBody: {
+  heading1: {
+    fontSize: 16,
+    fontFamily: "Helvetica-Bold",
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  heading2: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  heading3: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  paragraph: {
+    marginBottom: 10,
     fontSize: 10,
-    lineHeight: 1.7,
-    color: "#334155",
+    lineHeight: 1.5,
   },
-  placeholderBanner: {
-    backgroundColor: "#fffbeb",
+  listItem: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  bulletPoint: {
+    width: 10,
+    fontSize: 10,
+  },
+  listItemContent: {
+    flex: 1,
+    fontSize: 10,
+    lineHeight: 1.5,
+  },
+  
+  // Table
+  table: {
+    display: "flex",
+    width: "100%",
+    borderStyle: "solid",
     borderWidth: 1,
-    borderColor: "#f59e0b",
-    borderRadius: 4,
-    padding: 10,
-    marginBottom: 12,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    marginBottom: 20,
+    marginTop: 10,
   },
-  placeholderText: {
-    fontSize: 9,
-    color: "#92400e",
+  tableRow: {
+    flexDirection: "row",
+  },
+  tableCol: {
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+  },
+  tableCellHeader: {
+    margin: 5,
+    fontSize: 10,
     fontFamily: "Helvetica-Bold",
   },
-
-  // Page footer
-  footer: {
-    position: "absolute",
-    bottom: 32,
-    left: 60,
-    right: 60,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
-    paddingTop: 8,
+  tableCell: {
+    margin: 5,
+    fontSize: 10,
   },
-  footerText: {
+  
+  // Footer
+  pageFooter: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
     fontSize: 8,
-    color: "#94a3b8",
-  },
+    color: '#333'
+  }
 })
+
+/* -------------------------------------------------------------------------
+ * Markdown Parser
+ * ------------------------------------------------------------------------- */
+
+function parseInlineMarkdown(text: string) {
+  // Bold parser: **text**
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <Text key={i} style={{ fontFamily: 'Helvetica-Bold' }}>
+          {part.slice(2, -2)}
+        </Text>
+      );
+    }
+    return part;
+  });
+}
+
+function renderMarkdownToPDF(text: string) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const elements = [];
+  
+  let inTable = false;
+  let tableRows: string[][] = [];
+
+  const flushTable = () => {
+    if (inTable && tableRows.length > 0) {
+      // Filter out the markdown separator line, e.g. |---|---|
+      const rows = tableRows.filter(row => !row.every(cell => cell.match(/^[-:\s]+$/)));
+      if (rows.length > 0) {
+         const headers = rows[0];
+         const dataRows = rows.slice(1);
+         const colWidth = `${100 / headers.length}%`;
+         elements.push(
+           <View style={styles.table} key={`table-${elements.length}`}>
+             <View style={styles.tableRow}>
+               {headers.map((h, i) => (
+                 <View style={{...styles.tableCol, width: colWidth}} key={`th-${i}`}>
+                   <Text style={styles.tableCellHeader}>{parseInlineMarkdown(h)}</Text>
+                 </View>
+               ))}
+             </View>
+             {dataRows.map((row, r) => (
+               <View style={styles.tableRow} key={`row-${r}`}>
+                 {row.map((cell, c) => (
+                   <View style={{...styles.tableCol, width: colWidth}} key={`td-${c}`}>
+                     <Text style={styles.tableCell}>{parseInlineMarkdown(cell)}</Text>
+                   </View>
+                 ))}
+               </View>
+             ))}
+           </View>
+         );
+      }
+      inTable = false;
+      tableRows = [];
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (line.startsWith('|') && line.endsWith('|')) {
+      inTable = true;
+      const cells = line.split('|').slice(1, -1).map(c => c.trim());
+      tableRows.push(cells);
+      continue;
+    } else {
+      flushTable();
+    }
+
+    if (line === '') {
+      continue;
+    }
+
+    if (line.startsWith('### ')) {
+      elements.push(<Text key={`h3-${i}`} style={styles.heading3}>{parseInlineMarkdown(line.replace('### ', ''))}</Text>);
+    } else if (line.startsWith('## ')) {
+      elements.push(<Text key={`h2-${i}`} style={styles.heading2}>{parseInlineMarkdown(line.replace('## ', ''))}</Text>);
+    } else if (line.startsWith('# ')) {
+      elements.push(<Text key={`h1-${i}`} style={styles.heading1}>{parseInlineMarkdown(line.replace('# ', ''))}</Text>);
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      elements.push(
+        <View key={`li-${i}`} style={styles.listItem}>
+          <Text style={styles.bulletPoint}>•</Text>
+          <Text style={styles.listItemContent}>{parseInlineMarkdown(line.substring(2))}</Text>
+        </View>
+      );
+    } else {
+      elements.push(<Text key={`p-${i}`} style={styles.paragraph}>{parseInlineMarkdown(line)}</Text>);
+    }
+  }
+  flushTable();
+
+  return elements;
+}
 
 /* -------------------------------------------------------------------------
  * Helpers
@@ -194,29 +241,11 @@ function effectiveContent(s: ProposalSection): string {
   return s.humanContent ?? s.content ?? ""
 }
 
-const SECTION_NUMBERS: Record<string, number> = {
-  cover_letter: 1,
-  executive_summary: 2,
-  compliance_matrix: 3,
-  company_overview: 4,
-  technical_approach: 5,
-  past_performance: 6,
-  team_qualifications: 7,
-  pricing: 8,
-  terms: 9,
-}
-
 /* -------------------------------------------------------------------------
  * PDF Document
  * ------------------------------------------------------------------------- */
 
 export function ProposalPDFDocument({ proposal }: { proposal: ProposalResponse }) {
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
-
   const deadline = proposal.deadline
     ? new Date(proposal.deadline).toLocaleDateString("en-US", {
         year: "numeric",
@@ -231,95 +260,49 @@ export function ProposalPDFDocument({ proposal }: { proposal: ProposalResponse }
       author="Bideez"
       subject="Bid Proposal"
     >
-      {/* ---- Cover Page ------------------------------------------------ */}
-      <Page size="A4" style={styles.coverPage}>
-        <Text style={styles.coverBadge}>Bid Proposal · Confidential</Text>
-        <Text style={styles.coverTitle}>
-          {proposal.buyerName
-            ? `Response to ${proposal.buyerName}`
-            : "Bid Proposal"}
+      <Page size="A4" style={styles.page} wrap>
+        <Text style={styles.header}>
+          Bid proposal template
         </Text>
-        <Text style={styles.coverSubtitle}>
-          {proposal.projectOverview?.slice(0, 120) ?? "Comprehensive bid proposal prepared in response to your RFP."}
-        </Text>
-
-        <View style={styles.coverDivider} />
-
-        <View style={styles.coverMetaRow}>
-          <View>
-            <Text style={styles.coverMetaLabel}>Submitted To</Text>
-            <Text style={styles.coverMetaValue}>{proposal.buyerName ?? "The Buyer"}</Text>
+        
+        <View style={styles.columnsContainer}>
+          <View style={styles.column}>
+            <Text style={styles.colHeading}>Client</Text>
+            <Text style={styles.colText}>Name: {proposal.buyerName ?? "[Client Name]"}</Text>
+            <Text style={styles.colText}>Address: [Client Address]</Text>
+            <Text style={styles.colText}>Phone no. &amp; email: [Client Contact]</Text>
+            <Text style={{ marginTop: 15 }}>Deadline: {deadline}</Text>
           </View>
-          <View>
-            <Text style={styles.coverMetaLabel}>Date Prepared</Text>
-            <Text style={styles.coverMetaValue}>{today}</Text>
-          </View>
-          <View>
-            <Text style={styles.coverMetaLabel}>Submission Deadline</Text>
-            <Text style={styles.coverMetaValue}>{deadline}</Text>
+          <View style={styles.column}>
+            <Text style={styles.colHeading}>Contractor</Text>
+            <Text style={styles.colText}>Name: Bideez Vendor</Text>
+            <Text style={styles.colText}>Address: [Contractor Address]</Text>
+            <Text style={styles.colText}>Phone no. &amp; email: [Contractor Contact]</Text>
+            <Text style={{ marginTop: 15 }}>Job Number: {proposal.workspaceId.slice(0, 8)}</Text>
           </View>
         </View>
 
-        <View style={styles.coverFooter}>
-          <Text style={styles.coverFooterText}>Confidential · Generated by Bideez</Text>
-          <Text style={styles.coverFooterText}>{today}</Text>
-        </View>
-      </Page>
+        {/* Render Sections with Markdown Parsing */}
+        {proposal.sections.map((section) => (
+          <View key={section.id} style={{ marginBottom: 15 }}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            
+            {/* 
+              Notice: The isPlaceholder banner warning is INTENTIONALLY REMOVED here. 
+              The finalized exported PDF should look professional and not leak internal
+              "Input Required" warnings into the actual document.
+            */}
 
-      {/* ---- Table of Contents ----------------------------------------- */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.tocTitle}>Table of Contents</Text>
-        {proposal.sections.map((s) => (
-          <View key={s.id} style={styles.tocRow}>
-            <Text style={styles.tocLabel}>
-              {SECTION_NUMBERS[s.sectionType]}. {s.title}
-            </Text>
-            <View style={styles.tocDots} />
+            <View>
+              {renderMarkdownToPDF(effectiveContent(section))}
+            </View>
           </View>
         ))}
 
-        <Footer buyerName={proposal.buyerName} />
+        <Text style={styles.pageFooter} render={({ pageNumber, totalPages }) => (
+          `Bid proposal template — Page ${pageNumber} of ${totalPages}`
+        )} fixed />
       </Page>
-
-      {/* ---- Section Pages --------------------------------------------- */}
-      {proposal.sections.map((section) => (
-        <Page key={section.id} size="A4" style={styles.page}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>
-              Section {SECTION_NUMBERS[section.sectionType]}
-            </Text>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-          </View>
-
-          {section.isPlaceholder && (
-            <View style={styles.placeholderBanner}>
-              <Text style={styles.placeholderText}>
-                ⚠ This section requires human input before final submission.
-              </Text>
-            </View>
-          )}
-
-          <Text style={styles.sectionBody}>
-            {effectiveContent(section) || "(No content)"}
-          </Text>
-
-          <Footer buyerName={proposal.buyerName} />
-        </Page>
-      ))}
     </Document>
-  )
-}
-
-function Footer({ buyerName }: { buyerName: string | null }) {
-  return (
-    <View style={styles.footer} fixed>
-      <Text style={styles.footerText}>
-        Bid Proposal {buyerName ? `— ${buyerName}` : ""} · Confidential
-      </Text>
-      <Text
-        style={styles.footerText}
-        render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
-      />
-    </View>
   )
 }
