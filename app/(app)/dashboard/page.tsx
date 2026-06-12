@@ -4,7 +4,6 @@ import { ArrowRight, FileText, Inbox, Library, BookOpen, Plus } from "lucide-rea
 import { createClient } from "@/lib/supabase/server"
 import { listWorkspaces } from "@/lib/api/workspaces"
 import { listKnowledge } from "@/lib/api/knowledge"
-import { CompanyEnrichment } from "@/components/dashboard/company-enrichment"
 import { StatusPill } from "@/components/workspaces/status-pill"
 import type { WorkspaceSummary } from "@/lib/api/types"
 
@@ -20,20 +19,6 @@ export default async function DashboardPage() {
   } = await supabase.auth.getSession()
   const token = session?.access_token
 
-  let dbUser: Record<string, unknown> = {}
-  let dbCompany: Record<string, unknown> | null = null
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile?email=${encodeURIComponent(user.email!)}`,
-      { cache: "no-store" }
-    )
-    if (res.ok) {
-      const d = await res.json()
-      dbUser = d.user ?? {}
-      dbCompany = d.company ?? null
-    }
-  } catch {}
-
   let workspaces: WorkspaceSummary[] = []
   let knowledgeCount = 0
   try {
@@ -45,7 +30,6 @@ export default async function DashboardPage() {
     knowledgeCount = knRes.documents.length
   } catch {}
 
-  const userRole = (dbUser?.role as string) || "employee"
   const recentWorkspaces = workspaces.slice(0, 5)
 
   return (
@@ -66,18 +50,6 @@ export default async function DashboardPage() {
           New workspace
         </Link>
       </div>
-
-      {/* Company enrichment banner (owner only, non-complete states) */}
-      {dbCompany &&
-        userRole === "owner" &&
-        (dbCompany as any).enrichmentStatus !== "complete" && (
-          <div className="mb-6">
-            <CompanyEnrichment
-              email={user.email!}
-              initialCompany={dbCompany as any}
-            />
-          </div>
-        )}
 
       {/* Stat cards */}
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
