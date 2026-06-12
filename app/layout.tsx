@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist_Mono, Inter } from "next/font/google"
+import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google"
 import { Toaster } from "sonner"
 
 import "./globals.css"
@@ -7,6 +7,12 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+
+// Distinctive geometric grotesk for headings / display type.
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
+})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -36,6 +42,7 @@ export default function RootLayout({
       className={cn(
         "antialiased",
         fontMono.variable,
+        spaceGrotesk.variable,
         "font-sans",
         inter.variable
       )}

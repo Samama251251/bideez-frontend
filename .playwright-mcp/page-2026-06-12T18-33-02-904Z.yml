@@ -1,0 +1,267 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "bideez bideez" [ref=e5] [cursor=pointer]:
+          - /url: "#top"
+          - img "bideez" [ref=e6]
+          - generic [ref=e7]: bideez
+        - generic [ref=e8]:
+          - link "Pipeline" [ref=e9] [cursor=pointer]:
+            - /url: "#pipeline"
+          - link "The gate" [ref=e10] [cursor=pointer]:
+            - /url: "#gate"
+          - link "The loop" [ref=e11] [cursor=pointer]:
+            - /url: "#loop"
+        - generic [ref=e12]:
+          - link "Sign in" [ref=e13] [cursor=pointer]:
+            - /url: /auth
+            - img
+            - text: Sign in
+          - link "Get started" [ref=e14] [cursor=pointer]:
+            - /url: /auth?mode=signup
+            - img
+            - text: Get started
+            - img
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - img
+        - generic [ref=e17]:
+          - img [ref=e19]
+          - generic [ref=e26]:
+            - paragraph [ref=e27]: Decide
+            - paragraph [ref=e29]: Phase 01
+        - generic [ref=e30]:
+          - img [ref=e32]
+          - generic [ref=e34]:
+            - paragraph [ref=e35]: Create
+            - paragraph [ref=e37]: Phase 02
+        - generic [ref=e38]:
+          - img [ref=e40]
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: Verify
+            - paragraph [ref=e48]: Phase 03
+        - generic [ref=e49]:
+          - img [ref=e51]
+          - generic [ref=e54]:
+            - paragraph [ref=e55]: Defend
+            - paragraph [ref=e57]: Phase 04
+        - generic [ref=e58]:
+          - link "Watch the pipeline" [ref=e59] [cursor=pointer]:
+            - /url: "#pipeline"
+            - img [ref=e60]
+          - link "See how the decision gate works" [ref=e62] [cursor=pointer]:
+            - /url: "#gate"
+            - img [ref=e63]
+            - text: See how the decision gate works
+            - img [ref=e66]
+          - heading "Decide before you draft." [level=1] [ref=e68]
+          - paragraph [ref=e69]: bideez reads every tender, scores your real chance of winning, and flags the gaps that lose deals — before your team pours a week into a bid it was never going to win.
+          - generic [ref=e70]:
+            - link "See the pipeline" [ref=e71] [cursor=pointer]:
+              - /url: "#pipeline"
+              - text: See the pipeline
+              - img [ref=e72]
+            - link "Get started" [ref=e75] [cursor=pointer]:
+              - /url: "#access"
+        - link "01 / 04 · Scroll down" [ref=e76] [cursor=pointer]:
+          - /url: "#thesis"
+          - img [ref=e78]
+          - generic [ref=e80]: 01 / 04 · Scroll down
+        - paragraph [ref=e82]: Bid horizons
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - img [ref=e90]
+          - text: Decision gate before drafting
+        - generic [ref=e92]:
+          - img [ref=e93]
+          - text: Human-in-the-loop GO/NO-GO
+        - generic [ref=e95]:
+          - img [ref=e96]
+          - text: Zero-hallucination drafts
+    - generic [ref=e99]:
+      - paragraph [ref=e100]: Why teams switch
+      - paragraph [ref=e101]: Most tools stop at submit. bideez decides before you draft and prepares you for the call after.
+      - paragraph [ref=e102]: The gaps the engine catches during analysis are the exact questions a buyer will press on later. It is one connected workflow, from “should we even bid on this?” to “we are ready to defend it.”
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: Intake
+        - heading "Three ways in. One clean workspace out." [level=2] [ref=e107]
+        - paragraph [ref=e108]: However a tender reaches you, every approved RFP gets its own isolated workspace. It draws on your shared company knowledge without ever altering it.
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e116]: Auto-approved
+          - heading "Manual upload" [level=3] [ref=e117]
+          - paragraph [ref=e118]: Drop in a PDF or DOCX. bideez opens a dedicated workspace and starts working through it immediately.
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - img [ref=e122]
+            - generic [ref=e125]: Approval required
+          - heading "Connected inbox" [level=3] [ref=e126]
+          - paragraph [ref=e127]: New tenders that land in your inbox are detected automatically and queued for review. Nothing starts until you approve it.
+        - generic [ref=e128]:
+          - generic [ref=e129]:
+            - img [ref=e131]
+            - generic [ref=e138]: Coming soon
+          - heading "Opportunity discovery" [level=3] [ref=e139]
+          - paragraph [ref=e140]: bideez surfaces open tenders that fit your capabilities and brings them to you as ranked leads.
+    - generic [ref=e142]:
+      - generic [ref=e143]:
+        - paragraph [ref=e144]: The pipeline
+        - heading "DECIDE. CREATE. VERIFY. DEFEND." [level=2] [ref=e145]
+        - paragraph [ref=e146]: Four phases in every workspace, each building on the last. The compliance matrix you create up front carries all the way through to the call you prepare for at the end.
+      - generic [ref=e148]:
+        - generic [ref=e149]:
+          - button "01 / DECIDE Decide before you draft" [ref=e150]:
+            - generic [ref=e152]: 01 / DECIDE
+            - paragraph [ref=e153]: Decide before you draft
+          - button "02 / CREATE Draft, then route the gaps" [ref=e156]:
+            - generic [ref=e158]: 02 / CREATE
+            - paragraph [ref=e159]: Draft, then route the gaps
+          - button "03 / VERIFY Verify before you submit" [ref=e162]:
+            - generic [ref=e164]: 03 / VERIFY
+            - paragraph [ref=e165]: Verify before you submit
+          - button "04 / DEFEND ADD-ON Rehearse the buyer call" [ref=e168]:
+            - generic [ref=e169]:
+              - generic [ref=e170]: 04 / DEFEND
+              - generic [ref=e171]: ADD-ON
+            - paragraph [ref=e172]: Rehearse the buyer call
+        - generic [ref=e174]:
+          - generic [ref=e175]:
+            - paragraph [ref=e176]: 01 / DECIDE
+            - heading "Decide before you draft" [level=3] [ref=e177]
+            - paragraph [ref=e178]: Parse the tender, build the compliance matrix, score the odds — then let a human pull the GO/NO-GO trigger.
+          - list [ref=e179]:
+            - listitem [ref=e180]:
+              - img [ref=e182]
+              - generic [ref=e189]:
+                - generic [ref=e190]:
+                  - generic [ref=e191]: "01"
+                  - heading "Parse & extract" [level=4] [ref=e192]
+                - paragraph [ref=e193]: PDF/DOCX → clean text with page anchors. Mandatory requirements, evaluation weights, Q&A and deadline pulled into a structured skeleton.
+            - listitem [ref=e194]:
+              - img [ref=e196]
+              - generic [ref=e203]:
+                - generic [ref=e204]:
+                  - generic [ref=e205]: "02"
+                  - heading "Match & gap analysis" [level=4] [ref=e206]
+                - paragraph [ref=e207]: RAG over your capability library scores each requirement. Unmatched ones become gaps — ranked Critical, Scored, or Minor.
+            - listitem [ref=e208]:
+              - img [ref=e210]
+              - generic [ref=e213]:
+                - generic [ref=e214]:
+                  - generic [ref=e215]: "03"
+                  - heading "GO / NO-GO gate" [level=4] [ref=e216]
+                - paragraph [ref=e217]: The engine recommends from critical gaps + win-probability. A human makes the call. NO-GO stops the line right here.
+    - generic [ref=e219]:
+      - generic [ref=e220]:
+        - paragraph [ref=e221]: Phase 01 · The decision gate
+        - heading "See your compliance gaps and win probability before you write a word." [level=2] [ref=e222]
+        - paragraph [ref=e223]: "Analysis produces two things every bid team needs: a clear pass or fail on each requirement, and an honest read on your odds. Together they answer one question. Is this bid worth your team's week?"
+      - generic [ref=e224]:
+        - generic [ref=e225]:
+          - heading "Compliance checklist" [level=3] [ref=e226]
+          - generic [ref=e227]: 4 PASS · 1 SCORED · 1 GAP
+        - list [ref=e228]:
+          - listitem [ref=e229]:
+            - img [ref=e231]
+            - generic [ref=e233]: ISO 27001 certification
+            - generic [ref=e234]: MATCHED
+          - listitem [ref=e235]:
+            - img [ref=e237]
+            - generic [ref=e239]: 5+ years public-sector delivery
+            - generic [ref=e240]: MATCHED
+          - listitem [ref=e241]:
+            - img [ref=e243]
+            - generic [ref=e245]: Dedicated account manager
+            - generic [ref=e246]: MATCHED
+          - listitem [ref=e247]:
+            - img [ref=e249]
+            - generic [ref=e252]: On-site SLA under 4 hours
+            - generic [ref=e253]: CRITICAL
+          - listitem [ref=e254]:
+            - img [ref=e256]
+            - generic [ref=e258]: Local data residency (EU)
+            - generic [ref=e259]: SCORED
+          - listitem [ref=e260]:
+            - img [ref=e262]
+            - generic [ref=e264]: "Reference: 3 comparable projects"
+            - generic [ref=e265]: MATCHED
+      - generic [ref=e266]:
+        - generic [ref=e267]:
+          - paragraph [ref=e268]: The gate
+          - paragraph [ref=e269]: The engine recommends. A human decides. NO-GO stops the line — and protects the week.
+        - generic [ref=e270]:
+          - generic [ref=e271]:
+            - img [ref=e272]
+            - text: GO
+          - generic [ref=e274]:
+            - img [ref=e275]
+            - text: NO-GO
+    - generic [ref=e279]:
+      - generic [ref=e280]:
+        - paragraph [ref=e281]: The feedback loop
+        - heading "Every loss teaches the next bid." [level=2] [ref=e282]
+        - paragraph [ref=e283]: A closed loop wired source → memory → downstream. Outcomes and edits feed a tenant-level memory that quietly reshapes how future bids are matched and drafted.
+      - generic [ref=e284]:
+        - generic [ref=e285]:
+          - generic [ref=e286]:
+            - text: Source
+            - img [ref=e288]
+            - heading "Bid outcome + human edits" [level=3] [ref=e294]
+            - paragraph [ref=e295]: Won or lost, with reasons. Plus every change a human made to an AI draft.
+          - generic [ref=e296]: →
+        - generic [ref=e297]:
+          - generic [ref=e298]:
+            - text: Store
+            - img [ref=e300]
+            - heading "Tenant knowledge base" [level=3] [ref=e308]
+            - paragraph [ref=e309]: A 'mistakes not to make' memory accumulates across every workspace.
+          - generic [ref=e310]: →
+        - generic [ref=e312]:
+          - text: Destination
+          - img [ref=e314]
+          - heading "Smarter matcher & draft" [level=3] [ref=e319]
+          - paragraph [ref=e320]: “Logistics bids lose on delivery timelines” → that section gets strengthened next time, automatically.
+    - generic [ref=e324]:
+      - generic [ref=e325]:
+        - generic [ref=e326]:
+          - generic [ref=e327]: CAPSTONE ADD-ON
+          - generic [ref=e328]: Phase 04 · Defend
+        - heading "Then it rehearses you for the call that actually closes the deal." [level=2] [ref=e329]
+        - paragraph [ref=e330]: An optional voice agent role-plays a skeptical buyer — asking the hardest questions first, drawn from the exact gaps and heaviest-weighted criteria the engine already flagged. It scores your defense and coaches the weak answers.
+        - generic [ref=e331]:
+          - generic [ref=e332]: Ranked questions
+          - generic [ref=e333]: Live follow-ups
+          - generic [ref=e334]: Readiness score
+          - generic [ref=e335]: Model answers
+      - img [ref=e340]
+    - generic [ref=e344]:
+      - paragraph [ref=e345]: Built at a hackathon · in active development
+      - heading "Win more of the bids you choose to write." [level=2] [ref=e346]
+      - paragraph [ref=e347]: We're onboarding a first cohort of bid & proposal teams. Tell us about your pipeline and we'll set up your workspace.
+      - generic [ref=e348]:
+        - link "Get started" [ref=e349] [cursor=pointer]:
+          - /url: mailto:hello@bideez.ai?subject=Early%20access
+          - text: Get started
+          - img
+        - link "Walk the pipeline" [ref=e350] [cursor=pointer]:
+          - /url: "#pipeline"
+    - contentinfo [ref=e351]:
+      - generic [ref=e352]:
+        - generic [ref=e353]:
+          - generic [ref=e356]: bideez
+          - generic [ref=e357]: Decide. Create. Verify. Defend.
+        - generic [ref=e358]:
+          - link "Pipeline" [ref=e359] [cursor=pointer]:
+            - /url: "#pipeline"
+          - link "The gate" [ref=e360] [cursor=pointer]:
+            - /url: "#gate"
+          - link "The loop" [ref=e361] [cursor=pointer]:
+            - /url: "#loop"
+        - paragraph [ref=e362]: © 2026 bideez
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e368] [cursor=pointer]:
+    - img [ref=e369]

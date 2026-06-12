@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-display: var(--font-sans);
+    --font-heading: var(--font-display);
+    --font-display: var(--font-display);
     --font-sans: var(--font-sans);
     --font-mono: var(--font-mono);
     --color-sidebar-ring: var(--sidebar-ring);
@@ -212,6 +212,134 @@
     box-shadow:
       inset 0 1px 0 0 color-mix(in oklch, white 8%, transparent),
       0 10px 30px -12px rgb(0 0 0 / 0.6);
+  }
+
+  /* Glassmorphism gradient nav bar — a frosted surface with a tinted diagonal
+     sheen and a gradient border ring (drawn with a masked ::before). */
+  .glass-nav {
+    position: relative;
+    isolation: isolate;
+    background-color: color-mix(in oklch, var(--background) 42%, transparent);
+    background-image: linear-gradient(
+      115deg,
+      color-mix(in oklch, var(--primary) 14%, transparent) 0%,
+      transparent 38%,
+      transparent 62%,
+      color-mix(in oklch, var(--primary) 10%, transparent) 100%
+    );
+    -webkit-backdrop-filter: blur(16px) saturate(165%);
+    backdrop-filter: blur(16px) saturate(165%);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 48%, transparent),
+      0 8px 30px -14px rgb(0 0 0 / 0.22);
+    transition:
+      background-color 0.5s ease,
+      box-shadow 0.5s ease;
+  }
+  /* Gradient hairline along the bottom edge of the full-width bar. */
+  .glass-nav::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklch, var(--primary) 45%, transparent) 25%,
+      color-mix(in oklch, var(--foreground) 18%, transparent) 50%,
+      color-mix(in oklch, var(--primary) 40%, transparent) 75%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+  .glass-nav.is-scrolled {
+    background-color: color-mix(in oklch, var(--background) 68%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 52%, transparent),
+      0 14px 40px -16px rgb(0 0 0 / 0.32);
+  }
+  .dark .glass-nav {
+    background-color: color-mix(in oklch, var(--background) 38%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 7%, transparent),
+      0 8px 30px -14px rgb(0 0 0 / 0.6);
+  }
+  .dark .glass-nav.is-scrolled {
+    background-color: color-mix(in oklch, var(--background) 60%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 9%, transparent),
+      0 14px 40px -16px rgb(0 0 0 / 0.7);
+  }
+
+  /* Floating rounded nav bar with a frosted surface + gradient border ring. */
+  .glass-pill {
+    position: relative;
+    isolation: isolate;
+    background-color: color-mix(in oklch, var(--card) 55%, transparent);
+    background-image: linear-gradient(
+      130deg,
+      color-mix(in oklch, white 10%, transparent) 0%,
+      transparent 35%,
+      transparent 65%,
+      color-mix(in oklch, var(--primary) 8%, transparent) 100%
+    );
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(18px) saturate(170%);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 40%, transparent),
+      0 10px 30px -18px rgb(0 0 0 / 0.4);
+  }
+  .glass-pill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      130deg,
+      color-mix(in oklch, var(--primary) 45%, transparent) 0%,
+      color-mix(in oklch, var(--foreground) 16%, transparent) 38%,
+      transparent 60%,
+      color-mix(in oklch, var(--primary) 30%, transparent) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .glass-pill.is-scrolled {
+    background-color: color-mix(in oklch, var(--card) 78%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 45%, transparent),
+      0 16px 44px -20px rgb(0 0 0 / 0.55);
+  }
+  .dark .glass-pill {
+    background-color: color-mix(in oklch, var(--card) 62%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 7%, transparent),
+      0 10px 30px -18px rgb(0 0 0 / 0.6);
+  }
+  .dark .glass-pill.is-scrolled {
+    background-color: color-mix(in oklch, var(--card) 82%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 8%, transparent),
+      0 16px 44px -20px rgb(0 0 0 / 0.75);
+  }
+
+  /* Scroll-reveal initial state. Applied only while JS-driven reveals are active
+     (html.reveal-ready, set by <SmoothScroll />) so content stays visible when
+     JS is off or reduced motion is requested. GSAP animates these to their
+     resting opacity:1 / translateY(0). */
+  .reveal-ready [data-animate],
+  .reveal-ready .glass,
+  .reveal-ready [data-animate-card] {
+    opacity: 0;
+    transform: translateY(40px);
+    will-change: transform, opacity;
   }
 }
 
