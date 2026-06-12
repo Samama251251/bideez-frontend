@@ -4,6 +4,9 @@ import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { IntegrationsPanel } from "@/components/settings/integrations-panel"
 import { CompanyEnrichment } from "@/components/dashboard/company-enrichment"
+import { CompanyMembersTable } from "@/components/settings/company-members-table"
+import * as teamApi from "@/lib/api/team"
+import type { CompanyMember } from "@/lib/api/types"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -27,6 +30,17 @@ export default async function SettingsPage() {
   } catch {}
 
   const userRole = (dbUser?.role as string) || "employee"
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const token = session?.access_token
+
+  let members: CompanyMember[] = []
+  try {
+    const res = await teamApi.listMembers(token)
+    members = res.members
+  } catch {}
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-8">
@@ -52,6 +66,17 @@ export default async function SettingsPage() {
           <CompanyEnrichment email={user.email!} initialCompany={dbCompany as any} />
         </section>
       )}
+
+      {/* Company members */}
+      <section className="mb-10">
+        <div className="mb-3">
+          <h2 className="font-display text-sm font-semibold tracking-tight">Company members</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Everyone on your team, their speciality, and their role.
+          </p>
+        </div>
+        <CompanyMembersTable members={members} />
+      </section>
 
       {/* Integrations */}
       <section>
