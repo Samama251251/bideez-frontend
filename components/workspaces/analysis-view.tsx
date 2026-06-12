@@ -503,7 +503,7 @@ function RequirementRow({
 
   return (
     <>
-      <div className="group overflow-hidden rounded-xl border border-border bg-background/40">
+      <div className="overflow-hidden rounded-xl border border-border bg-background/40">
         <div className="flex items-start gap-3 p-4">
           <div className={cn("mt-0.5 shrink-0", meta.text)}>
             {req.isMatched ? (
@@ -578,19 +578,19 @@ function RequirementRow({
             )}
           </div>
 
-          {/* Override button — subtle, appears on hover */}
+          {/* Override button — always visible */}
           <button
             type="button"
             onClick={() => setOverrideOpen(true)}
-            title="Override verdict"
             className={cn(
-              "mt-0.5 shrink-0 rounded-md p-1.5 text-muted-foreground/40 transition-all",
-              "opacity-0 group-hover:opacity-100",
-              "hover:bg-muted hover:text-muted-foreground",
-              req.userOverride && "opacity-100 text-purple-400/70 hover:text-purple-500"
+              "mt-0.5 flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
+              req.userOverride
+                ? "text-purple-500 hover:bg-purple-500/10"
+                : "text-muted-foreground/60 hover:bg-muted hover:text-muted-foreground"
             )}
           >
-            <Pencil className="size-3.5" />
+            <Pencil className="size-3" />
+            Override
           </button>
         </div>
 
