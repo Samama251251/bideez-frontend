@@ -29,6 +29,7 @@ import { pdf } from "@react-pdf/renderer"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Markdown } from "@/components/ui/markdown"
 import { getAccessToken } from "@/lib/api/browser"
 import {
   ApiError,
@@ -720,15 +721,10 @@ function SectionCard({
                 </Button>
               </div>
             </div>
+          ) : displayContent ? (
+            <Markdown>{displayContent}</Markdown>
           ) : (
-            <div
-              className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground/90"
-              style={{ fontFamily: "inherit" }}
-            >
-              {displayContent || (
-                <span className="italic text-muted-foreground">No content generated.</span>
-              )}
-            </div>
+            <span className="text-sm italic text-muted-foreground">No content generated.</span>
           )}
         </div>
       )}
