@@ -178,6 +178,24 @@ export type ProposalSectionType =
   | "pricing"
   | "terms"
 
+/** Per-reviewer status on a proposal section. */
+export type SectionReviewerStatus = "pending" | "done"
+
+export interface SectionReviewer {
+  userId: string
+  name: string
+  department: string | null
+  status: SectionReviewerStatus
+  reviewedAt: string | null
+}
+
+export interface AssignableMember {
+  id: string
+  name: string
+  department: string | null
+  role: "owner" | "employee"
+}
+
 export interface ProposalSection {
   id: string
   sectionType: ProposalSectionType
@@ -190,6 +208,10 @@ export interface ProposalSection {
   isPlaceholder: boolean
   approved: boolean
   sortOrder: number
+  updatedAt: string
+  reviewers: SectionReviewer[]
+  /** True once every assigned reviewer has marked their pass done. */
+  reviewComplete: boolean
 }
 
 export interface ProposalResponse {
@@ -199,6 +221,7 @@ export interface ProposalResponse {
   deadline: string | null
   projectOverview: string | null
   sections: ProposalSection[]
+  assignableMembers: AssignableMember[]
 }
 
 export interface UpdateSectionResponse {
@@ -207,6 +230,58 @@ export interface UpdateSectionResponse {
   humanContent: string | null
   approved: boolean
   updatedAt: string
+  reviewers: SectionReviewer[]
+  reviewComplete: boolean
+}
+
+/* ----------------------------------------------------------------------------
+ * Phase 3b — SME review: team members, "My Reviews", outcome + lessons
+ * ------------------------------------------------------------------------- */
+
+export interface CompanyMember {
+  id: string
+  name: string
+  email: string
+  department: string | null
+  role: "owner" | "employee"
+}
+
+export interface MyReviewTask {
+  workspaceId: string
+  workspaceTitle: string
+  workspaceStatus: WorkspaceStatus
+  sectionId: string
+  sectionType: ProposalSectionType
+  sectionTitle: string
+  isPlaceholder: boolean
+  myStatus: SectionReviewerStatus
+}
+
+export interface ReviewInviteRecipient {
+  userId: string
+  email: string
+  sections: number
+  sent: boolean
+}
+
+export interface SendReviewsResponse {
+  notified: number
+  recipients: ReviewInviteRecipient[]
+}
+
+export interface RecordOutcomeInput {
+  outcome: BidOutcome
+  reasons: string
+}
+
+export interface WorkingMemory {
+  id: string
+  companyId: string
+  category: string
+  content: string
+  source: string
+  workspaceId: string | null
+  createdAt: string
 }
 
 /* ----------------------------------------------------------------------------
