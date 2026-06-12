@@ -12,6 +12,8 @@ import type {
   DecisionResponse,
   DocumentType,
   GoDecision,
+  OverrideRequirementInput,
+  OverrideRequirementResponse,
   RequirementsResponse,
   StatusResponse,
   UploadUrlResponse,
@@ -123,6 +125,20 @@ export function recordDecision(
   return request<DecisionResponse>(
     `/api/workspaces/${workspaceId}/decision`,
     { method: "POST", body: JSON.stringify({ decision }) },
+    token
+  )
+}
+
+/** Manually override the LLM's verdict on a single requirement. */
+export function overrideRequirement(
+  workspaceId: string,
+  requirementId: string,
+  body: OverrideRequirementInput,
+  token?: string
+) {
+  return request<OverrideRequirementResponse>(
+    `/api/workspaces/${workspaceId}/requirements/${requirementId}/override`,
+    { method: "PATCH", body: JSON.stringify(body) },
     token
   )
 }
