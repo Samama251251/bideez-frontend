@@ -235,3 +235,45 @@ export interface AddBidInput {
   bidManager?: string | null
   submissionDate?: string | null
 }
+
+/* ----------------------------------------------------------------------------
+ * Inbound email / Gmail intake — candidate review queue
+ * ------------------------------------------------------------------------- */
+
+export type RfpCandidateStatus = "pending" | "approved" | "rejected" | "duplicate"
+export type RfpSource = "gmail" | "manual" | "research_agent"
+
+export interface RfpCandidate {
+  id: string
+  source: RfpSource
+  status: RfpCandidateStatus
+  title: string
+  buyerName: string | null
+  deadline: string | null
+  projectOverview: string | null
+  /** Numeric string 0–100. Always Number() before comparing. */
+  domainFitScore: string
+  classificationReason: string | null
+  fromAddress: string | null
+  subject: string | null
+  attachmentFilename: string | null
+  promotedWorkspaceId: string | null
+  createdAt: string
+}
+
+export interface IntakeAddressResponse {
+  address: string
+  token: string
+}
+
+export interface GmailStatus {
+  connected: boolean
+  emailAddress?: string
+  status?: "active" | "revoked" | "error"
+}
+
+export interface ApproveCandidateResponse {
+  workspaceId: string
+  /** "parsing" = has doc, go straight to workspace. "intake" = body-only, needs upload. */
+  status: WorkspaceStatus
+}
