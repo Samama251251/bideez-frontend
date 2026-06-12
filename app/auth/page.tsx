@@ -18,30 +18,31 @@ export default async function AuthPage({
   const initialMode = onboarding === "true" ? "onboarding" : mode === "signup" ? "signup" : "signin"
 
   return (
-    <div className="relative grid min-h-svh lg:grid-cols-[1.05fr_1fr]">
-      {/* ambient gradient backdrop */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+    <div className="dark relative grid min-h-svh overflow-x-clip bg-[#08080a] text-foreground lg:grid-cols-[1.05fr_1fr]">
+      {/* ambient gradient backdrop — same technique as landing hero card (no negative z-index, DOM order paints it first) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-[10%] right-[2%] h-[44rem] w-[44rem] rounded-full bg-[radial-gradient(circle,rgba(214,247,224,0.60),rgba(180,200,190,0.18)_45%,transparent_70%)] opacity-80 blur-2xl" />
+        <div className="absolute top-[35%] right-[20%] h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.30),transparent_65%)] opacity-55 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_60%_25%,transparent_40%,rgba(0,0,0,0.60))]" />
         <div
-          className="absolute -top-40 left-[6%] size-[44rem] rounded-full opacity-60 blur-3xl"
+          className="absolute inset-0 opacity-[0.45]"
           style={{
-            background:
-              "radial-gradient(circle, color-mix(in oklch, var(--primary) 14%, transparent), transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute right-[8%] bottom-[-12%] size-[40rem] rounded-full opacity-50 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, color-mix(in oklch, var(--foreground) 8%, transparent), transparent 70%)",
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.5) 0.5px, transparent 0.6px)",
+            backgroundSize: "46px 46px",
           }}
         />
       </div>
 
       {/* ---------------- brand panel (static) ---------------- */}
       <aside className="grain relative hidden flex-col justify-between overflow-hidden border-r border-border px-12 py-12 lg:flex">
+        {/* glow — same technique as hero card */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-[15%] -left-[10%] h-[36rem] w-[36rem] rounded-full bg-[radial-gradient(circle,rgba(214,247,224,0.40),rgba(180,200,190,0.10)_45%,transparent_70%)] opacity-70 blur-2xl" />
+          <div className="absolute top-[40%] left-[20%] h-[22rem] w-[22rem] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.18),transparent_65%)] opacity-50 blur-3xl" />
+        </div>
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(80%_60%_at_30%_20%,black,transparent)] opacity-[0.35]"
+          className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(80%_60%_at_30%_20%,black,transparent)] opacity-[0.20]"
           style={{
             backgroundImage:
               "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",

@@ -255,7 +255,7 @@ function Hero() {
 function Thesis() {
   return (
     <section id="thesis" className="scroll-mt-24 px-4 py-12 sm:py-14">
-      <div className="mx-auto max-w-5xl text-center" data-animate>
+      <div className="mx-auto max-w-6xl text-center" data-animate>
         <p className="font-mono text-xs tracking-[0.18em] text-primary uppercase">
           Why teams switch
         </p>
@@ -304,7 +304,7 @@ const loopNodes = [
 
 function LoopSection() {
   return (
-    <section id="loop" className="scroll-mt-24 px-4 py-24">
+    <section id="loop" className="scroll-mt-24 px-6 py-24 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-none">
         <SectionHead
           kicker="The feedback loop"

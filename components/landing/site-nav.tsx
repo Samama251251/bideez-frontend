@@ -2,12 +2,10 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowUpRight, ShieldCheck, User } from "lucide-react"
+import { ArrowUpRight, ShieldCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-
-const links = [{ href: "#access", label: "Get access" }]
 
 export function SiteNav() {
   const [scrolled, setScrolled] = React.useState(false)
@@ -23,13 +21,16 @@ export function SiteNav() {
     <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-4 sm:pt-4">
       <nav
         className={cn(
-          "glass-pill relative flex w-full max-w-5xl items-center justify-between rounded-full py-2 pr-2 pl-4 transition-shadow duration-500",
+          "glass-pill relative flex items-center gap-8 rounded-full py-2 pr-2 pl-4 transition-shadow duration-500 sm:gap-12",
           scrolled ? "is-scrolled" : "shadow-none"
         )}
       >
         {/* logo */}
-        <a href="#top" className="flex shrink-0 items-center gap-2">
-          <span className="font-display text-lg font-semibold tracking-tight">
+        <a href="#top" className="flex shrink-0 items-center gap-2.5">
+          <span className="flex size-7 items-center justify-center rounded-[0.5rem] bg-white font-display text-base font-bold text-black shadow-[0_2px_10px_-2px_rgba(255,255,255,0.35)]">
+            b
+          </span>
+          <span className="font-display text-lg font-bold tracking-tight">
             bideez
           </span>
         </a>
@@ -39,13 +40,10 @@ export function SiteNav() {
           <Button
             variant="ghost"
             size="sm"
-            className="hidden gap-1.5 font-medium text-muted-foreground hover:text-foreground sm:inline-flex"
+            className="hidden font-medium text-muted-foreground hover:text-foreground sm:inline-flex"
             asChild
           >
-            <Link href="/auth">
-              <User className="size-4" />
-              Sign in
-            </Link>
+            <Link href="/auth">Sign in</Link>
           </Button>
           <Button
             size="sm"
