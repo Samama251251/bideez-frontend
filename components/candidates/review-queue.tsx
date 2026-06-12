@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { getAccessToken } from "@/lib/api/browser"
 import {
   approveCandidate,
+  getGmailStatus,
   listCandidates,
   rejectCandidate,
   runResearchAgent,
@@ -87,6 +88,14 @@ export function ReviewQueue() {
   const [acting, setActing] = React.useState<Record<string, "approving" | "rejecting">>({})
   const [searching, setSearching] = React.useState(false)
   const [refreshTick, setRefreshTick] = React.useState(0)
+  const [gmailConnected, setGmailConnected] = React.useState(false)
+
+  React.useEffect(() => {
+    getAccessToken()
+      .then((token) => getGmailStatus(token))
+      .then((s) => setGmailConnected(s.connected && s.status === "active"))
+      .catch(() => {})
+  }, [])
 
   React.useEffect(() => {
     let cancelled = false
@@ -283,7 +292,7 @@ export function ReviewQueue() {
           {error}
         </div>
       ) : filteredCandidates.length === 0 ? (
-        <EmptyState sourceTab={sourceTab} statusTab={statusTab} />
+        <EmptyState sourceTab={sourceTab} statusTab={statusTab} gmailConnected={gmailConnected} />
       ) : (
         <div className="space-y-3">
           {filteredCandidates.map((c) => (
@@ -304,9 +313,11 @@ export function ReviewQueue() {
 function EmptyState({
   sourceTab,
   statusTab,
+  gmailConnected,
 }: {
   sourceTab: SourceTab
   statusTab: RfpCandidateStatus
+  gmailConnected: boolean
 }) {
   const Icon = sourceTab === "email" ? Mail : Globe
 
@@ -314,13 +325,17 @@ function EmptyState({
   if (statusTab === "pending") {
     message =
       sourceTab === "email" ? (
-        <>
-          No pending email RFPs. Forward an RFP to your intake address or{" "}
-          <a href="/settings" className="text-primary hover:underline">
-            connect Gmail
-          </a>
-          .
-        </>
+        gmailConnected ? (
+          <>No pending email RFPs. Forward an RFP to your intake address.</>
+        ) : (
+          <>
+            No pending email RFPs. Forward an RFP to your intake address or{" "}
+            <a href="/settings" className="text-primary hover:underline">
+              connect Gmail
+            </a>
+            .
+          </>
+        )
       ) : (
         <>
           No web-discovered RFPs yet. Click{" "}
