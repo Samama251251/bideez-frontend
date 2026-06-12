@@ -34,11 +34,8 @@ export function SiteNav() {
           scrolled && "glass-bar"
         )}
       >
-        <a href="#top" className="group flex items-center gap-2.5">
-          <span className="relative flex size-2.5">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
-            <span className="relative inline-flex size-2.5 rounded-full bg-primary" />
-          </span>
+        <a href="#top" className="group flex items-center gap-2">
+          <img src="/logo.svg" alt="bideez" className="size-7" />
           <span className="font-display text-lg font-semibold tracking-tight">
             bideez
           </span>

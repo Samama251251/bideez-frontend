@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "bideez — Decide before you draft. Rehearse before you win.",
   description:
     "An AI bid-response engine with a decision gate before drafting and a rehearsal stage after. Extract requirements, score win-probability, auto-draft compliant proposals, and defend the call.",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 }
 
 export default function RootLayout({
