@@ -49,6 +49,7 @@ export interface UploadUrlResponse {
 export interface StatusResponse {
   status: WorkspaceStatus
   error: string | null
+  goDecision: GoDecision
 }
 
 /** Disqualifying-if-unmet vs scored/nice-to-have. */
@@ -159,6 +160,53 @@ export interface AnalysisResponse {
 
 export interface DecisionResponse {
   goDecision: GoDecision
+  status?: WorkspaceStatus
+}
+
+/* ----------------------------------------------------------------------------
+ * Phase 3 — CREATE: Bid proposal sections
+ * ------------------------------------------------------------------------- */
+
+export type ProposalSectionType =
+  | "cover_letter"
+  | "executive_summary"
+  | "compliance_matrix"
+  | "company_overview"
+  | "technical_approach"
+  | "past_performance"
+  | "team_qualifications"
+  | "pricing"
+  | "terms"
+
+export interface ProposalSection {
+  id: string
+  sectionType: ProposalSectionType
+  title: string
+  /** AI-generated content (markdown). */
+  content: string | null
+  /** Human-edited override — used for export when set. */
+  humanContent: string | null
+  /** True if the section contains a gap placeholder requiring human input. */
+  isPlaceholder: boolean
+  approved: boolean
+  sortOrder: number
+}
+
+export interface ProposalResponse {
+  workspaceId: string
+  status: WorkspaceStatus
+  buyerName: string | null
+  deadline: string | null
+  projectOverview: string | null
+  sections: ProposalSection[]
+}
+
+export interface UpdateSectionResponse {
+  id: string
+  sectionType: ProposalSectionType
+  humanContent: string | null
+  approved: boolean
+  updatedAt: string
 }
 
 /* ----------------------------------------------------------------------------

@@ -134,3 +134,49 @@ export function retryWorkspace(workspaceId: string, token?: string) {
     token
   )
 }
+
+/* -------------------------------------------------------------------------
+ * Phase 3 — CREATE: Bid proposal endpoints
+ * ------------------------------------------------------------------------- */
+
+/** Fetch all proposal sections. Available once status === "review" | "finalized". */
+export function getProposal(workspaceId: string, token?: string) {
+  return request<import("./types").ProposalResponse>(
+    `/api/workspaces/${workspaceId}/proposal`,
+    {},
+    token
+  )
+}
+
+/** Save a human edit or approval to a single section. */
+export function updateProposalSection(
+  workspaceId: string,
+  sectionId: string,
+  body: { humanContent?: string | null; approved?: boolean },
+  token?: string
+) {
+  return request<import("./types").UpdateSectionResponse>(
+    `/api/workspaces/${workspaceId}/proposal/sections/${sectionId}`,
+    { method: "PATCH", body: JSON.stringify(body) },
+    token
+  )
+}
+
+/** Mark the proposal as finalized. Requires status === "review". */
+export function finalizeProposal(workspaceId: string, token?: string) {
+  return request<{ status: WorkspaceStatus }>(
+    `/api/workspaces/${workspaceId}/proposal/finalize`,
+    { method: "POST" },
+    token
+  )
+}
+
+/** Re-run a failed CREATE phase (draft generation). Requires goDecision === "go". */
+export function retryCreateWorkspace(workspaceId: string, token?: string) {
+  return request<{ status: WorkspaceStatus }>(
+    `/api/workspaces/${workspaceId}/retry-create`,
+    { method: "POST" },
+    token
+  )
+}
+
