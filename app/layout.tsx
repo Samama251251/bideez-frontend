@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   description:
     "An AI bid-response engine with a decision gate before drafting and a rehearsal stage after. Extract requirements, score win-probability, auto-draft compliant proposals, and defend the call.",
   icons: {
-    icon: "/logo.svg",
-    shortcut: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
   },
 }
 

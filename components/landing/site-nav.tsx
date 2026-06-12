@@ -35,7 +35,7 @@ export function SiteNav() {
         )}
       >
         <a href="#top" className="group flex items-center gap-2">
-          <img src="/logo.svg" alt="bideez" className="size-7" />
+          <img src="/icon.svg" alt="bideez" className="size-7" />
           <span className="font-display text-lg font-semibold tracking-tight">
             bideez
           </span>

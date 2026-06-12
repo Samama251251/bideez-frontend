@@ -47,10 +47,7 @@ export function Sidebar({ userName, companyName }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-sidebar-border px-4">
         <div className="flex items-center gap-2">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-sidebar-primary opacity-60" />
-            <span className="relative inline-flex size-2 rounded-full bg-sidebar-primary" />
-          </span>
+          <img src="/icon.svg" alt="bideez" className="size-6 shrink-0" />
           <span className="font-display font-semibold tracking-tight text-sidebar-foreground">
             bideez
           </span>
