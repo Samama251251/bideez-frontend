@@ -27,8 +27,14 @@ import type {
   EvidenceSourceType,
   GapSeverity,
   GoDecision,
+  RequirementCategory,
   RequirementsResponse,
 } from "@/lib/api/types"
+import {
+  CategoryTabs,
+  firstNonEmptyCategory,
+  groupByCategory,
+} from "@/components/workspaces/category-tabs"
 
 /* --- severity → on-palette styling ------------------------------------- */
 
@@ -117,14 +123,6 @@ export function AnalysisView({
     }
   }
 
-  const sorted = React.useMemo(
-    () =>
-      [...analysis.requirements].sort(
-        (a, b) => SEVERITY_ORDER[a.gapSeverity] - SEVERITY_ORDER[b.gapSeverity]
-      ),
-    [analysis.requirements]
-  )
-
   const { passCount, failCount } = analysis.checklist
   const total = passCount + failCount
 
@@ -173,14 +171,10 @@ export function AnalysisView({
             Compliance matrix
           </h3>
           <span className="font-mono text-[11px] text-muted-foreground">
-            {sorted.length} requirements
+            {analysis.requirements.length} requirements
           </span>
         </div>
-        <div className="space-y-2.5">
-          {sorted.map((req) => (
-            <RequirementRow key={req.id} req={req} />
-          ))}
-        </div>
+        <CategorizedMatrix requirements={analysis.requirements} />
       </div>
 
       {requirements && <ExtractionContext requirements={requirements} />}
@@ -369,6 +363,91 @@ function ChecklistCard({
   )
 }
 
+/* --- Tabbed compliance matrix (by category) ---------------------------- */
+
+function CategorizedMatrix({ requirements }: { requirements: AnalysisRequirement[] }) {
+  const grouped = React.useMemo(() => groupByCategory(requirements), [requirements])
+  const counts = React.useMemo(
+    () =>
+      ({
+        vendor: grouped.vendor.length,
+        compliance: grouped.compliance.length,
+        product: grouped.product.length,
+        admin: grouped.admin.length,
+      }) as Record<RequirementCategory, number>,
+    [grouped]
+  )
+  const [active, setActive] = React.useState<RequirementCategory>(() =>
+    firstNonEmptyCategory(counts)
+  )
+
+  // Matched categories: rows sorted by gap severity. Admin: a self-attested checklist.
+  const items = React.useMemo(
+    () =>
+      [...grouped[active]].sort(
+        (a, b) => SEVERITY_ORDER[a.gapSeverity] - SEVERITY_ORDER[b.gapSeverity]
+      ),
+    [grouped, active]
+  )
+
+  return (
+    <>
+      <CategoryTabs active={active} counts={counts} onChange={setActive} />
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">None in this category.</p>
+      ) : active === "admin" ? (
+        <AdminChecklist items={items} />
+      ) : (
+        <div className="space-y-2.5">
+          {items.map((req) => (
+            <RequirementRow key={req.id} req={req} />
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
+/**
+ * Admin requirements are submission rules — not matched against the knowledge base.
+ * Render them as a plain self-attested checklist (text + anchor + severity), with none
+ * of the match-bar / evidence affordances of a corpus-matched requirement.
+ */
+function AdminChecklist({ items }: { items: AnalysisRequirement[] }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((req) => (
+        <li
+          key={req.id}
+          className="flex items-start gap-3 rounded-xl border border-border bg-background/40 p-4"
+        >
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-muted-foreground/50" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                  req.severity === "mandatory"
+                    ? "bg-foreground/10 text-foreground"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {req.severity}
+              </span>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed">{req.text}</p>
+            {req.sourceAnchor && (
+              <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                {req.sourceAnchor}
+              </p>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 /* --- Compliance matrix row + evidence drill-down ----------------------- */
 
 function RequirementRow({ req }: { req: AnalysisRequirement }) {
@@ -392,12 +471,12 @@ function RequirementRow({ req }: { req: AnalysisRequirement }) {
             <span
               className={cn(
                 "rounded-full px-2 py-0.5 text-[11px] font-medium",
-                req.kind === "mandatory"
+                req.severity === "mandatory"
                   ? "bg-foreground/10 text-foreground"
                   : "bg-muted text-muted-foreground"
               )}
             >
-              {req.kind}
+              {req.severity}
             </span>
             <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", meta.chip)}>
               {meta.label}

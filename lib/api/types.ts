@@ -51,9 +51,16 @@ export interface StatusResponse {
   error: string | null
 }
 
+/** Disqualifying-if-unmet vs scored/nice-to-have. */
+export type RequirementSeverity = "mandatory" | "desirable"
+
+/** Domain category. admin is a self-attested checklist; the rest are corpus-matched. */
+export type RequirementCategory = "admin" | "product" | "vendor" | "compliance"
+
 export interface RequirementItem {
   id: string
-  kind: "mandatory" | "compliance"
+  severity: RequirementSeverity
+  category: RequirementCategory
   text: string
   sourceAnchor: string | null
 }
@@ -105,7 +112,8 @@ export interface AnalysisEvidence {
 
 export interface AnalysisRequirement {
   id: string
-  kind: "mandatory" | "compliance"
+  severity: RequirementSeverity
+  category: RequirementCategory
   text: string
   sourceAnchor: string | null
   isMatched: boolean

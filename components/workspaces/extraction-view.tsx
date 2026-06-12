@@ -24,9 +24,16 @@ import {
 } from "@/lib/api/workspaces"
 import type {
   AnalysisResponse,
+  RequirementCategory,
+  RequirementItem,
   RequirementsResponse,
   WorkspaceStatus,
 } from "@/lib/api/types"
+import {
+  CategoryTabs,
+  firstNonEmptyCategory,
+  groupByCategory,
+} from "@/components/workspaces/category-tabs"
 
 const POLL_INTERVAL_MS = 2500
 const CLIENT_TIMEOUT_MS = 5 * 60 * 1000
@@ -447,32 +454,7 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
       )}
 
       <Section title="Requirements" count={data.requirements.length}>
-        <ul className="space-y-2">
-          {data.requirements.map((r) => (
-            <li
-              key={r.id}
-              className="rounded-lg border border-border bg-background/40 p-3 text-sm"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span>{r.text}</span>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                    r.kind === "mandatory"
-                      ? "bg-gap/10 text-gap"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {r.kind}
-                </span>
-              </div>
-              {r.sourceAnchor && (
-                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                  {r.sourceAnchor}
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
+        <RequirementsByCategory requirements={data.requirements} />
       </Section>
 
       <Section
@@ -514,6 +496,64 @@ function ExtractionPanel({ data }: { data: RequirementsResponse | null }) {
         </ul>
       </Section>
     </div>
+  )
+}
+
+function RequirementsByCategory({
+  requirements,
+}: {
+  requirements: RequirementItem[]
+}) {
+  const grouped = React.useMemo(() => groupByCategory(requirements), [requirements])
+  const counts = React.useMemo(
+    () =>
+      ({
+        vendor: grouped.vendor.length,
+        compliance: grouped.compliance.length,
+        product: grouped.product.length,
+        admin: grouped.admin.length,
+      }) as Record<RequirementCategory, number>,
+    [grouped]
+  )
+  const [active, setActive] = React.useState<RequirementCategory>(() =>
+    firstNonEmptyCategory(counts)
+  )
+  const items = grouped[active]
+
+  return (
+    <>
+      <CategoryTabs active={active} counts={counts} onChange={setActive} />
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">None in this category.</p>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((r) => (
+            <li
+              key={r.id}
+              className="rounded-lg border border-border bg-background/40 p-3 text-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span>{r.text}</span>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                    r.severity === "mandatory"
+                      ? "bg-gap/10 text-gap"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {r.severity}
+                </span>
+              </div>
+              {r.sourceAnchor && (
+                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                  {r.sourceAnchor}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   )
 }
 
