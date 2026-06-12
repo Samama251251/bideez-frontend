@@ -2,16 +2,12 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Check, Copy, Loader2, Mail, RefreshCw, Unplug, Wifi } from "lucide-react"
+import { Loader2, Mail, RefreshCw, Unplug, Wifi } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { getAccessToken } from "@/lib/api/browser"
-import {
-  getGmailConnectUrl,
-  getGmailStatus,
-  getIntakeAddress,
-} from "@/lib/api/candidates"
-import type { GmailStatus, IntakeAddressResponse } from "@/lib/api/types"
+import { getGmailConnectUrl, getGmailStatus } from "@/lib/api/candidates"
+import type { GmailStatus } from "@/lib/api/types"
 
 type Banner = { kind: "success" | "error"; message: string } | null
 
@@ -19,12 +15,9 @@ export function IntegrationsPanel() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [intakeAddress, setIntakeAddress] = React.useState<IntakeAddressResponse | null>(null)
   const [gmailStatus, setGmailStatus] = React.useState<GmailStatus | null>(null)
-  const [loadingAddress, setLoadingAddress] = React.useState(true)
   const [loadingGmail, setLoadingGmail] = React.useState(true)
   const [connectingGmail, setConnectingGmail] = React.useState(false)
-  const [copied, setCopied] = React.useState(false)
   const [banner, setBanner] = React.useState<Banner>(null)
   const [error, setError] = React.useState<string | null>(null)
   // Incrementing this triggers a silent Gmail status re-fetch (e.g. after OAuth return).
@@ -48,17 +41,6 @@ export function IntegrationsPanel() {
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch forwarding address once on mount.
-  React.useEffect(() => {
-    let cancelled = false
-    getAccessToken()
-      .then((token) => getIntakeAddress(token))
-      .then((d) => { if (!cancelled) setIntakeAddress(d) })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoadingAddress(false) })
-    return () => { cancelled = true }
-  }, [])
-
   // Fetch Gmail status on mount and whenever gmailRefreshTick increments.
   React.useEffect(() => {
     let cancelled = false
@@ -70,13 +52,6 @@ export function IntegrationsPanel() {
       .finally(() => { if (!cancelled) setLoadingGmail(false) })
     return () => { cancelled = true }
   }, [gmailRefreshTick])
-
-  async function handleCopy() {
-    if (!intakeAddress?.address) return
-    await navigator.clipboard.writeText(intakeAddress.address)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   async function handleConnectGmail() {
     setConnectingGmail(true)
@@ -115,38 +90,6 @@ export function IntegrationsPanel() {
           </button>
         </div>
       )}
-
-      {/* Forwarding address */}
-      <section className="rounded-2xl border border-border bg-muted/20 p-6">
-        <div className="flex items-center gap-2.5 mb-1">
-          <Mail className="size-4 text-muted-foreground" />
-          <h2 className="font-display font-semibold tracking-tight">Forwarding address</h2>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          Auto-forward RFP emails to this address (Gmail → Settings → Filters).
-        </p>
-
-        {loadingAddress ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Loading…
-          </div>
-        ) : intakeAddress ? (
-          <div className="flex items-center gap-2">
-            <code className="flex-1 rounded-lg border border-border bg-muted/40 px-3 py-2 font-mono text-sm">
-              {intakeAddress.address}
-            </code>
-            <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0 gap-1.5">
-              {copied ? (
-                <><Check className="size-3.5 text-go" /> Copied</>
-              ) : (
-                <><Copy className="size-3.5" /> Copy</>
-              )}
-            </Button>
-          </div>
-        ) : (
-          <p className="text-sm text-gap">Forwarding address not configured. Contact support.</p>
-        )}
-      </section>
 
       {/* Gmail direct connection */}
       <section className="rounded-2xl border border-border bg-muted/20 p-6">

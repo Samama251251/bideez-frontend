@@ -3,6 +3,8 @@
 import * as React from "react"
 import {
   CheckCircle2,
+  ExternalLink,
+  Eye,
   FileText,
   Loader2,
   RotateCw,
@@ -12,11 +14,19 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { getAccessToken, uploadFileToSignedUrl } from "@/lib/api/browser"
 import {
   confirmKnowledgeUploaded,
   createKnowledge,
   deleteKnowledge,
+  getKnowledgePreviewUrl,
   getKnowledgeUploadUrl,
   listKnowledge,
   retryKnowledge,
@@ -43,6 +53,33 @@ export function KnowledgeManager({
   const [busyId, setBusyId] = React.useState<string | null>(null)
   const [dragOver, setDragOver] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  /* --- Preview state -------------------------------------------------- */
+  const [previewDoc, setPreviewDoc] = React.useState<KnowledgeDocument | null>(null)
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+  const [previewName, setPreviewName] = React.useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = React.useState(false)
+  const [previewError, setPreviewError] = React.useState<string | null>(null)
+
+  const isPdf = previewName ? /\.pdf$/i.test(previewName) : false
+
+  async function handlePreview(doc: KnowledgeDocument) {
+    setPreviewDoc(doc)
+    setPreviewUrl(null)
+    setPreviewName(null)
+    setPreviewError(null)
+    setPreviewLoading(true)
+    try {
+      const token = await getAccessToken()
+      const { url, filename } = await getKnowledgePreviewUrl(doc.id, token)
+      setPreviewUrl(url)
+      setPreviewName(filename)
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : "Could not load preview")
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
 
   const hasPending = docs.some((d) => !d.ready)
 
@@ -183,12 +220,35 @@ export function KnowledgeManager({
                 className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-4"
               >
                 <FileText className="size-4 shrink-0 text-muted-foreground" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{doc.title}</p>
+                <button
+                  type="button"
+                  disabled={!doc.ready}
+                  onClick={() => doc.ready && handlePreview(doc)}
+                  className="min-w-0 flex-1 text-left disabled:cursor-default"
+                >
+                  <p
+                    className={cn(
+                      "truncate font-medium",
+                      doc.ready && "transition-colors hover:text-primary"
+                    )}
+                  >
+                    {doc.title}
+                  </p>
                   <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                     Added {new Date(doc.createdAt).toLocaleDateString()}
                   </p>
-                </div>
+                </button>
+
+                {doc.ready && (
+                  <button
+                    type="button"
+                    title="Preview document"
+                    onClick={() => handlePreview(doc)}
+                    className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <Eye className="size-4" />
+                  </button>
+                )}
 
                 {doc.ready ? (
                   <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-go/10 px-2.5 py-0.5 text-xs font-medium text-go">
@@ -226,6 +286,65 @@ export function KnowledgeManager({
           </ul>
         )}
       </div>
+
+      <Dialog
+        open={previewDoc !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewDoc(null)
+            setPreviewUrl(null)
+            setPreviewName(null)
+            setPreviewError(null)
+          }
+        }}
+      >
+        <DialogContent className="flex h-[85vh] max-w-4xl flex-col gap-0 p-0">
+          <DialogHeader className="border-b border-border px-6 py-4">
+            <DialogTitle className="truncate pr-8">{previewDoc?.title}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Preview of the uploaded document
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative flex-1 overflow-hidden bg-muted/30">
+            {previewLoading && (
+              <div className="flex h-full items-center justify-center">
+                <Loader2 className="size-6 animate-spin text-muted-foreground/60" />
+              </div>
+            )}
+
+            {!previewLoading && previewError && (
+              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-gap">
+                {previewError}
+              </div>
+            )}
+
+            {!previewLoading && !previewError && previewUrl && (
+              isPdf ? (
+                <iframe
+                  src={previewUrl}
+                  title={previewName ?? "Document preview"}
+                  className="size-full"
+                />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+                  <FileText className="size-10 text-muted-foreground/50" />
+                  <p className="max-w-sm text-sm text-muted-foreground">
+                    This file type can&apos;t be previewed inline. Open it in a new tab to
+                    view exactly what was uploaded.
+                  </p>
+                  <Button asChild variant="outline">
+                    <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-2 size-4" />
+                      Open {previewName}
+                    </a>
+                  </Button>
+                </div>
+              )
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

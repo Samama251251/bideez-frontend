@@ -53,6 +53,15 @@ export function createKnowledge(title: string, token?: string) {
   )
 }
 
+/** Get a short-lived signed URL to preview the original uploaded file. */
+export function getKnowledgePreviewUrl(id: string, token?: string) {
+  return request<{ url: string; filename: string }>(
+    `/api/knowledge/${id}/preview`,
+    {},
+    token
+  )
+}
+
 /** Step 2 — get a signed upload URL for the raw file. */
 export function getKnowledgeUploadUrl(id: string, filename: string, token?: string) {
   return request<UploadUrlResponse>(
