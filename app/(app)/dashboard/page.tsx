@@ -94,7 +94,7 @@ export default async function DashboardPage() {
           href="/knowledge"
         />
         <StatCard
-          label="Review Queue"
+          label="Opportunities"
           value={null}
           icon={Inbox}
           href="/review"
@@ -173,8 +173,8 @@ export default async function DashboardPage() {
             {
               href: "/review",
               icon: Inbox,
-              label: "Review Queue",
-              desc: "Inbound RFPs detected from email",
+              label: "Opportunities",
+              desc: "Email intake and web-discovered RFPs",
             },
           ].map(({ href, icon: Icon, label, desc }) => (
             <Link

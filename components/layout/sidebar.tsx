@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils"
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/workspaces", icon: FileText, label: "Workspaces" },
-  { href: "/review", icon: Inbox, label: "Review Queue" },
+  { href: "/review", icon: Inbox, label: "Opportunities" },
   { href: "/library", icon: Library, label: "Company Library" },
   { href: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
 ]
