@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import {
   AlertCircle,
   FileText,
@@ -13,6 +14,8 @@ import { Button } from "@/components/ui/button"
 import { StatusPill } from "@/components/workspaces/status-pill"
 import { AnalysisView } from "@/components/workspaces/analysis-view"
 import { PipelineStepper } from "@/components/workspaces/pipeline-stepper"
+import { DraftingPanel } from "@/components/workspaces/drafting-panel"
+import { BidProposalView } from "@/components/workspaces/bid-proposal-view"
 import { getAccessToken, uploadFileToSignedUrl } from "@/lib/api/browser"
 import {
   confirmUploaded,
@@ -21,6 +24,7 @@ import {
   getStatus,
   getUploadUrl,
   retryWorkspace,
+  retryCreateWorkspace,
 } from "@/lib/api/workspaces"
 import type {
   AnalysisResponse,
@@ -40,9 +44,9 @@ const CLIENT_TIMEOUT_MS = 5 * 60 * 1000
 const ACCEPT =
   ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
-/** Statuses we keep polling on. */
+/** Statuses we keep polling on (includes CREATE phase drafting). */
 function isProcessing(status: WorkspaceStatus) {
-  return status === "parsing" || status === "analyzing"
+  return status === "parsing" || status === "analyzing" || status === "drafting"
 }
 
 export function ExtractionView({
@@ -50,14 +54,19 @@ export function ExtractionView({
   title,
   initialStatus,
   initialError,
+  initialGoDecision,
 }: {
   workspaceId: string
   title: string
   initialStatus: WorkspaceStatus
   initialError: string | null
+  /** The recorded GO/NO-GO decision — used to determine which retry path to show on failure. */
+  initialGoDecision?: string | null
 }) {
+  const router = useRouter()
   const [status, setStatus] = React.useState<WorkspaceStatus>(initialStatus)
   const [error, setError] = React.useState<string | null>(initialError)
+  const [goDecision, setGoDecision] = React.useState<string | null>(initialGoDecision ?? null)
   const [uploading, setUploading] = React.useState(false)
   const [uploadError, setUploadError] = React.useState<string | null>(null)
   const [timedOut, setTimedOut] = React.useState(false)
@@ -82,6 +91,9 @@ export function ExtractionView({
         const next = await getStatus(workspaceId, token)
         setStatus(next.status)
         setError(next.error)
+        if (next.goDecision && next.goDecision !== "pending") {
+          setGoDecision(next.goDecision)
+        }
       } catch {
         // transient — retry on next tick
       }
@@ -92,7 +104,14 @@ export function ExtractionView({
 
   /* --- Fetch requirements as soon as they're available ---------------- */
   React.useEffect(() => {
-    if (status !== "analyzing" && status !== "decision" && status !== "parsed")
+    if (
+      status !== "analyzing" &&
+      status !== "decision" &&
+      status !== "parsed" &&
+      status !== "drafting" &&
+      status !== "review" &&
+      status !== "finalized"
+    )
       return
     if (data) return
     let cancelled = false
@@ -166,6 +185,17 @@ export function ExtractionView({
     }
   }
 
+  async function handleRetryCreate() {
+    try {
+      const token = await getAccessToken()
+      await retryCreateWorkspace(workspaceId, token)
+      setError(null)
+      setStatus("drafting")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Retry failed")
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -176,7 +206,12 @@ export function ExtractionView({
       </div>
 
       {status === "failed" ? (
-        <FailedPanel error={error} onRetry={handleRetry} />
+        <FailedPanel
+          error={error}
+          isCreatePhase={goDecision === "go"}
+          onRetry={handleRetry}
+          onRetryCreate={handleRetryCreate}
+        />
       ) : (
         <>
           {/* Progress timeline — visible across the whole DECIDE flow. */}
@@ -218,10 +253,27 @@ export function ExtractionView({
                 workspaceId={workspaceId}
                 analysis={analysis}
                 requirements={data}
+                onGoDecision={(decision) => {
+                  if (decision === "go") {
+                    setGoDecision("go")
+                    setStatus("drafting")
+                  } else {
+                    // No-Go: navigate back to workspaces list
+                    router.push("/workspaces")
+                  }
+                }}
               />
             ) : (
               <LoadingPanel message="Loading the gap analysis…" />
             ))}
+
+          {/* CREATE phase — AI is generating the proposal */}
+          {status === "drafting" && <DraftingPanel />}
+
+          {/* CREATE phase — proposal ready for review / finalized */}
+          {(status === "review" || status === "finalized") && (
+            <BidProposalView workspaceId={workspaceId} />
+          )}
         </>
       )}
     </div>
@@ -381,30 +433,46 @@ function LoadingPanel({ message }: { message: string }) {
 
 function FailedPanel({
   error,
+  isCreatePhase = false,
   onRetry,
+  onRetryCreate,
 }: {
   error: string | null
+  /** True when the failure occurred during the CREATE (drafting) phase. */
+  isCreatePhase?: boolean
   onRetry: () => void
+  onRetryCreate?: () => void
 }) {
   return (
     <div className="rounded-2xl border border-gap/30 bg-gap/5 p-6">
       <div className="flex items-center gap-2 text-gap">
         <AlertCircle className="size-4" />
         <h2 className="font-display text-base font-semibold tracking-tight">
-          Extraction failed
+          {isCreatePhase ? "Proposal generation failed" : "Extraction failed"}
         </h2>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         {error ?? "Something went wrong."}
       </p>
-      <Button
-        type="button"
-        variant="outline"
-        className="mt-4"
-        onClick={onRetry}
-      >
-        <RotateCw className="size-4" /> Retry
-      </Button>
+      <div className="mt-4 flex items-center gap-2">
+        {isCreatePhase && onRetryCreate ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onRetryCreate}
+          >
+            <RotateCw className="size-4" /> Retry Proposal
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onRetry}
+          >
+            <RotateCw className="size-4" /> Retry Extraction
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

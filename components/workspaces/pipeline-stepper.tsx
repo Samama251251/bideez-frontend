@@ -112,8 +112,8 @@ const PHASE_RANK: Record<WorkspaceStatus, number> = {
   analyzing: 2,
   decision: 3,
   drafting: 4,
-  review: 4,
-  finalized: 4,
+  review: 5,
+  finalized: 5,
   failed: 1,
   archived: 0,
 }
@@ -124,6 +124,8 @@ function buildSteps(status: WorkspaceStatus, uploading: boolean): Step[] {
   const uploadDone = rank >= 1
   const extractDone = rank >= 2
   const analysisDone = rank >= 3
+  const decideDone = rank >= 4
+  const proposalDone = rank >= 5
 
   return [
     {
@@ -162,9 +164,26 @@ function buildSteps(status: WorkspaceStatus, uploading: boolean): Step[] {
     {
       key: "decide",
       label: "GO / NO-GO decision",
-      state: analysisDone ? "active" : "pending",
+      state: decideDone ? "done" : analysisDone ? "active" : "pending",
       loading: false,
-      sub: analysisDone ? "Ready for your decision" : "Pending",
+      sub: decideDone
+        ? "GO decision recorded"
+        : analysisDone
+          ? "Ready for your decision"
+          : "Pending",
+    },
+    {
+      key: "proposal",
+      label: "Create bid proposal",
+      state: proposalDone ? "done" : decideDone ? "active" : "pending",
+      loading: !proposalDone && decideDone,
+      sub: proposalDone
+        ? "Proposal ready for review"
+        : decideDone
+          ? status === "drafting"
+            ? "AI is drafting your proposal…"
+            : "Pending"
+          : "Pending",
     },
   ]
 }

@@ -54,6 +54,7 @@ export default async function WorkspaceDetailPage({
         title={title}
         initialStatus={status.status}
         initialError={status.error}
+        initialGoDecision={status.goDecision}
       />
     </div>
   )

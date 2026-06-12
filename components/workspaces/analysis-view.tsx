@@ -100,10 +100,13 @@ export function AnalysisView({
   workspaceId,
   analysis,
   requirements,
+  onGoDecision,
 }: {
   workspaceId: string
   analysis: AnalysisResponse
   requirements: RequirementsResponse | null
+  /** Called after a GO or NO-GO decision is successfully recorded. */
+  onGoDecision?: (decision: "go" | "no_go") => void
 }) {
   const [decision, setDecision] = React.useState<GoDecision>(analysis.goDecision)
   const [submitting, setSubmitting] = React.useState<GoDecision | null>(null)
@@ -116,6 +119,8 @@ export function AnalysisView({
       const token = await getAccessToken()
       const res = await recordDecision(workspaceId, next, token)
       setDecision(res.goDecision)
+      // Notify parent so it can transition status or navigate.
+      onGoDecision?.(next)
     } catch (err) {
       setDecisionError(err instanceof Error ? err.message : "Could not save decision")
     } finally {
