@@ -11,6 +11,7 @@ import {
   Settings2,
   LogOut,
   ClipboardCheck,
+  Bot,
   Sun,
   Moon,
 } from "lucide-react"
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", exact: true },
+  { href: "/agent", icon: Bot, label: "Agent" },
   { href: "/workspaces", icon: FileText, label: "Workspaces" },
   { href: "/review", icon: Inbox, label: "Opportunities" },
   { href: "/my-reviews", icon: ClipboardCheck, label: "My Reviews" },
