@@ -382,12 +382,6 @@ export default function RehearsalPage() {
             </a>
           )}
           <div className="flex items-center gap-3 mt-4">
-            <Badge
-              variant="outline"
-              className="border-border/70 font-mono text-[10px] tracking-wide"
-            >
-              CAPSTONE ADD-ON
-            </Badge>
             <span className="font-mono text-xs text-muted-foreground">
               Phase 04 · Defend
             </span>
@@ -573,9 +567,9 @@ export default function RehearsalPage() {
         {/*  ACTIVE CALL                                                    */}
         {/* ============================================================== */}
         {(callStatus === "active" || callStatus === "ending") && (
-          <div className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
+          <div className="flex justify-center">
             {/* Call controls */}
-            <div className="glass rounded-3xl p-6 sm:p-8 flex flex-col">
+            <div className="glass rounded-3xl p-6 sm:p-8 flex flex-col w-full max-w-lg">
               {/* Voice visualizer */}
               <div className="mb-8 flex flex-col items-center flex-1 justify-center">
                 <div className="relative">
@@ -629,70 +623,6 @@ export default function RehearsalPage() {
                 </button>
               </div>
 
-              {/* Questions sidebar */}
-              {session?.questions && (
-                <div className="border-t border-border/60 pt-6">
-                  <p className="mb-4 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-                    Prepared Questions ({session.questions.length})
-                  </p>
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                    {session.questions.map((q) => (
-                      <div
-                        key={q.id}
-                        className="glass-subtle flex items-start gap-3 rounded-xl px-3.5 py-3"
-                      >
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 font-mono text-[10px] text-primary">
-                          {q.rank}
-                        </span>
-                        <span className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                          {q.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Live transcript */}
-            <div className="glass rounded-3xl p-6 sm:p-8 flex flex-col h-[700px]">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/60">
-                <h3 className="font-display text-xl font-medium">Live Transcript</h3>
-                <span className="flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-1 font-mono text-[10px] text-muted-foreground">
-                  <MessageSquare className="size-3" />
-                  recording
-                </span>
-              </div>
-              <div className="flex-1 space-y-4 overflow-y-auto pr-2 pb-4">
-                {transcript.length === 0 && (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-sm text-muted-foreground">
-                      Transcript will appear here as the conversation progresses.
-                    </p>
-                  </div>
-                )}
-                {transcript.map((item, i) => (
-                  <div
-                    key={i}
-                    className={`flex gap-3 ${item.role === "user" ? "justify-end" : ""}`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-relaxed ${
-                        item.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-tr-sm"
-                          : "glass-subtle rounded-tl-sm text-foreground"
-                      }`}
-                    >
-                      <p className={`mb-1.5 font-mono text-[10px] tracking-wide uppercase ${
-                        item.role === "user" ? "text-primary-foreground/70" : "text-muted-foreground"
-                      }`}>
-                        {item.role === "user" ? "You" : "Buyer Panel"}
-                      </p>
-                      <p>{item.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         )}
@@ -967,97 +897,6 @@ export default function RehearsalPage() {
           </div>
         )}
 
-        {/* ============================================================== */}
-        {/*  SAMPLE ANSWERS REFERENCE (always visible in non-call states)  */}
-        {/* ============================================================== */}
-        {(callStatus === "idle" || callStatus === "scored") && (
-          <div className="glass mt-12 rounded-3xl p-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex size-8 items-center justify-center rounded-xl border border-border/60 bg-background text-primary">
-                <MessageSquare className="size-4" />
-              </div>
-              <h3 className="font-display text-xl font-medium">Sample Answers Reference</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-8 ml-11">
-              When the buyer asks you these questions, here are different
-              types of answers you could try to test the scoring system.
-            </p>
-
-            <div className="space-y-6">
-              {/* Q1: Disaster Recovery */}
-              <div className="glass-subtle rounded-2xl p-6">
-                <p className="mb-5 text-sm font-medium text-foreground">
-                  <span className="font-mono text-[10px] text-primary mr-2 bg-primary/10 px-1.5 py-0.5 rounded">Q</span>
-                  &quot;Your proposal doesn&apos;t address disaster recovery. How would you ensure RPO &lt; 1 hour and RTO &lt; 4 hours?&quot;
-                </p>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="rounded-xl bg-go/5 border border-go/20 p-4">
-                    <p className="mb-2 font-mono text-[10px] font-bold tracking-wide text-go uppercase flex items-center gap-1.5">
-                      <CheckCircle2 className="size-3" /> STRONG (80+)
-                    </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      &quot;We recognize this gap. We&apos;ve partnered with AWS for a multi-AZ
-                      deployment. We achieve RPO of 30m using RDS automated backups, and RTO of 2h using
-                      pre-configured standby instances. Our Sui Northern Gas project used a similar
-                      architecture.&quot;
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-scored/5 border border-scored/20 p-4">
-                    <p className="mb-2 font-mono text-[10px] font-bold tracking-wide text-scored uppercase flex items-center gap-1.5">
-                      <AlertTriangle className="size-3" /> WEAK (40-60)
-                    </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      &quot;We understand the importance of disaster recovery. We
-                      have experience with cloud infrastructure and would set up
-                      proper backup procedures. Our team is very capable.&quot;
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-gap/5 border border-gap/20 p-4">
-                    <p className="mb-2 font-mono text-[10px] font-bold tracking-wide text-gap uppercase flex items-center gap-1.5">
-                      <X className="size-3" /> POOR (&lt;40)
-                    </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      &quot;I think disaster recovery is something we can figure out
-                      during the implementation phase. We haven&apos;t really planned
-                      it yet.&quot;
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Q2: Urdu localization */}
-              <div className="glass-subtle rounded-2xl p-6">
-                <p className="mb-5 text-sm font-medium text-foreground">
-                  <span className="font-mono text-[10px] text-primary mr-2 bg-primary/10 px-1.5 py-0.5 rounded">Q</span>
-                  &quot;How will your system handle Urdu language interfaces and bidirectional text?&quot;
-                </p>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl bg-go/5 border border-go/20 p-4">
-                    <p className="mb-2 font-mono text-[10px] font-bold tracking-wide text-go uppercase flex items-center gap-1.5">
-                      <CheckCircle2 className="size-3" /> STRONG
-                    </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      &quot;We&apos;ve engaged a localization partner, UrduTech,
-                      who has completed RTL implementations for 3 government
-                      apps. SAP natively supports Unicode. We&apos;re budgeting 6 weeks for
-                      full localization.&quot;
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-scored/5 border border-scored/20 p-4">
-                    <p className="mb-2 font-mono text-[10px] font-bold tracking-wide text-scored uppercase flex items-center gap-1.5">
-                      <AlertTriangle className="size-3" /> WEAK
-                    </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      &quot;Urdu support is on our roadmap. We know SAP can handle
-                      multiple languages and we would work on translating the
-                      interface.&quot;
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
