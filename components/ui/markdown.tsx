@@ -21,7 +21,7 @@ export function Markdown({
   return (
     <div
       className={cn(
-        "text-sm leading-relaxed text-foreground/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        "text-sm leading-relaxed text-foreground/90 break-words [&_a]:break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
     >

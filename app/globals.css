@@ -347,3 +347,28 @@
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes agent-ring-spin {
+  to { transform: rotate(1turn); }
+}
+
+@layer utilities {
+  /* Rotating gradient ring used behind the agent avatar */
+  .agent-ring {
+    background: conic-gradient(
+      from 0deg,
+      var(--primary) 0deg,
+      transparent 110deg,
+      transparent 250deg,
+      var(--primary) 360deg
+    );
+    opacity: 0.4;
+    animation: agent-ring-spin 6s linear infinite;
+    transition: opacity 0.25s ease, filter 0.25s ease;
+  }
+  .agent-ring-active {
+    opacity: 1;
+    animation-duration: 1.4s;
+    filter: drop-shadow(0 0 5px color-mix(in oklch, var(--primary) 55%, transparent));
+  }
+}
