@@ -408,16 +408,6 @@ function CandidateCard({
           )}
         </div>
 
-        {/* Fit score */}
-        <div
-          className={cn(
-            "min-w-[3.5rem] shrink-0 rounded-lg px-3 py-1.5 text-center",
-            score < 40 ? "bg-red-500 text-black shadow-sm" : fitColor(score)
-          )}
-        >
-          <p className="text-lg font-bold leading-none">{score}</p>
-          <p className={cn("text-[10px] uppercase tracking-wide", score < 40 ? "opacity-80 font-semibold" : "opacity-70")}>fit</p>
-        </div>
       </div>
 
       {/* Fit bar — web search only */}
